@@ -18,6 +18,15 @@ import { useCallback, useState, useEffect } from "react";
 import { useDropzone } from "react-dropzone";
 import { cn } from "@/lib/utils";
 
+// Generate a UUID v4
+const generateUUID = (): string => {
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    const v = c === "x" ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+};
+
 interface ImageUploaderBlockProps {
   file?: File | null;
   setFile?: (file: File | null) => void;
@@ -108,6 +117,9 @@ const ImageUploaderBlock = ({
   // Thumbnails for display (smaller size for performance)
   const [thumbnails, setThumbnails] = useState<Map<string, string>>(new Map());
   const [singleThumbnail, setSingleThumbnail] = useState<string | null>(null);
+  // UUID mappings for files
+  const [fileUUIDs, setFileUUIDs] = useState<Map<string, string>>(new Map());
+  const [singleFileUUID, setSingleFileUUID] = useState<string | null>(null);
 
   // Helper function to generate unique key for files
   const getFileKey = (f: File) => f.name + f.size;
@@ -155,6 +167,14 @@ const ImageUploaderBlock = ({
         const newFiles = [...files, ...acceptedFiles].slice(0, maxFiles);
         setFiles(newFiles);
 
+        // Generate UUIDs for new files
+        acceptedFiles.forEach((f) => {
+          const fileKey = getFileKey(f);
+          if (!fileUUIDs.has(fileKey)) {
+            setFileUUIDs((prev) => new Map(prev).set(fileKey, generateUUID()));
+          }
+        });
+
         if (enableCrop && acceptedFiles.length > 0) {
           setCropModalFile(acceptedFiles[0]);
         }
@@ -163,12 +183,15 @@ const ImageUploaderBlock = ({
         const newFile = acceptedFiles[0];
         setFile(newFile);
 
+        // Generate UUID for single file
+        setSingleFileUUID(generateUUID());
+
         if (enableCrop) {
           setCropModalFile(newFile);
         }
       }
     },
-    [multiple, files, setFiles, setFile, maxFiles, enableCrop]
+    [multiple, files, setFiles, setFile, maxFiles, enableCrop, fileUUIDs]
   );
 
   const {
@@ -192,13 +215,18 @@ const ImageUploaderBlock = ({
       const fileToRemove = files[index];
       const fileKey = getFileKey(fileToRemove);
 
-      // Remove cropped image and thumbnail if exists
+      // Remove cropped image, thumbnail, and UUID if exists
       setCroppedImages((prev) => {
         const newMap = new Map(prev);
         newMap.delete(fileKey);
         return newMap;
       });
       setThumbnails((prev) => {
+        const newMap = new Map(prev);
+        newMap.delete(fileKey);
+        return newMap;
+      });
+      setFileUUIDs((prev) => {
         const newMap = new Map(prev);
         newMap.delete(fileKey);
         return newMap;
@@ -210,6 +238,7 @@ const ImageUploaderBlock = ({
       if (!setFile) return;
       setCroppedImage(null);
       setSingleThumbnail(null);
+      setSingleFileUUID(null);
       setFile(null);
       // Notify parent component that cropped image is cleared
       if (onCroppedImageChange) {
