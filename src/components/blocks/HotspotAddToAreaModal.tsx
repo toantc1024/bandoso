@@ -180,26 +180,27 @@ const HotspotAddToAreaModal: React.FC<HotspotAddToAreaModalProps> = ({
                       {/* Hotspot Info */}
                       <div className="flex-1 min-w-0">
                         <div className="flex items-start justify-between">
-                          <div className="flex-1">
+                          <div className="flex-1 min-w-0">
                             <h3 className="font-medium text-gray-900 truncate">
                               {hotspot.title || "Không có tiêu đề"}
                             </h3>
-                            <p className="text-sm text-gray-500 mt-1">
+                            <p className="text-sm text-gray-500 mt-1 truncate">
                               ID: {hotspot.hotspot_id}
                             </p>
                             {hotspot.address && (
-                              <p className="text-sm text-gray-500 mt-1 truncate">
-                                📍 {hotspot.address}
+                              <p
+                                className="text-sm text-gray-500 mt-1 truncate"
+                                title={hotspot.address}
+                              >
+                                {hotspot.address}
                               </p>
                             )}
                             {hotspot.description && (
-                              <p className="text-xs text-gray-400 mt-1 overflow-hidden">
-                                <span className="line-clamp-2">
-                                  {hotspot.description.length > 100
-                                    ? hotspot.description.substring(0, 100) +
-                                      "..."
-                                    : hotspot.description}
-                                </span>
+                              <p
+                                className="text-xs text-gray-400 mt-1 line-clamp-2"
+                                title={hotspot.description}
+                              >
+                                {hotspot.description}
                               </p>
                             )}
                             <p className="text-xs text-gray-400 mt-1">

@@ -101,11 +101,11 @@ export const getUnassignedHotspots = async (
       "hotspots",
       {
         conditions: [
-          {
-            column: "area_id",
-            operator: "is",
-            value: null,
-          },
+          // {
+          //   column: "area_id",
+          //   operator: "is",
+          //   value: null,
+          // },
         ],
       },
       undefined,
