@@ -29,10 +29,20 @@ export const uploadDocument = async (
     const folder = combinePath(DOCUMENTS_FOLDER_NAME, hotspot?.area_id);
 
     // Upload file to storage
-    await uploadFile(file, BUCKET_NAME, folder, fileName, true);
+    const uploadResult = await uploadFile(
+      file,
+      BUCKET_NAME,
+      folder,
+      fileName,
+      true
+    );
 
     // Get public URL
-    const url = retrievePublicUrl(BUCKET_NAME, folder, fileName);
+    const url = retrievePublicUrl(
+      BUCKET_NAME,
+      folder,
+      uploadResult.normalizedFileName
+    );
 
     // Create document object
 
@@ -41,7 +51,7 @@ export const uploadDocument = async (
       id: `doc_${timestamp}`,
       url,
       title,
-      file_name: fileName,
+      file_name: uploadResult.normalizedFileName,
       file_size: file.size,
       file_type: file.type,
       hotspot_id: hotspotId,

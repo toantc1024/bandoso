@@ -127,9 +127,9 @@ const PanoramaCRUDModal = ({
             });
           }
 
-          let hotspot = await getHotspotById(hotspotId)
+          let hotspot = await getHotspotById(hotspotId);
 
-          await uploadFile(
+          const uploadResult = await uploadFile(
             fileToUpload,
             BUCKET_NAME,
             combinePath(PANORAMAS_FOLDER_NAME, hotspot?.area_id),
@@ -140,7 +140,7 @@ const PanoramaCRUDModal = ({
           imageUrl = retrievePublicUrl(
             BUCKET_NAME,
             combinePath(PANORAMAS_FOLDER_NAME, hotspot?.area_id),
-            fileName
+            uploadResult.normalizedFileName
           );
         }
 
@@ -168,7 +168,7 @@ const PanoramaCRUDModal = ({
             });
           }
 
-          await uploadFile(
+          const uploadResult = await uploadFile(
             fileToUpload,
             BUCKET_NAME,
             HOTSPOTS_FOLDER_NAME,
@@ -179,7 +179,7 @@ const PanoramaCRUDModal = ({
           imageUrl = retrievePublicUrl(
             BUCKET_NAME,
             HOTSPOTS_FOLDER_NAME,
-            fileName
+            uploadResult.normalizedFileName
           );
         }
 

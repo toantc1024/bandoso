@@ -31,10 +31,20 @@ export const uploadAsset = async (
       hotspot?.area_id?.toString() || "general"
     );
     // Upload file to storage
-    await uploadFile(file, BUCKET_NAME, folder, fileName, true);
+    const uploadResult = await uploadFile(
+      file,
+      BUCKET_NAME,
+      folder,
+      fileName,
+      true
+    );
 
     // Get public URL
-    const imageUrl = retrievePublicUrl(BUCKET_NAME, folder, fileName);
+    const imageUrl = retrievePublicUrl(
+      BUCKET_NAME,
+      folder,
+      uploadResult.normalizedFileName
+    );
 
     // Create asset object
     const newAsset: Asset = {

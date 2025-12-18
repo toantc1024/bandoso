@@ -180,7 +180,7 @@ const HotspotInfoBlock: React.FC<HotspotInfoBlockProps> = ({
           }
 
           // Upload file to storage
-          await uploadFile(
+          const uploadResult = await uploadFile(
             fileToUpload,
             BUCKET_NAME,
             combinePath(HOTSPOTS_FOLDER_NAME, currentHotspot.area_id),
@@ -192,7 +192,7 @@ const HotspotInfoBlock: React.FC<HotspotInfoBlockProps> = ({
           const publicUrl = retrievePublicUrl(
             BUCKET_NAME,
             combinePath(HOTSPOTS_FOLDER_NAME, currentHotspot.area_id),
-            fileName
+            uploadResult.normalizedFileName
           );
 
           // Set the public URL as preview_image
