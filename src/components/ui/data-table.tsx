@@ -74,7 +74,7 @@ export function DataTable<T extends { id: string }>({
         />
       )}
 
-      <div className="border rounded-lg">
+      <div className="border rounded-lg overflow-x-auto">
         <Table>
           <TableHeader className="bg-muted/50">
             <TableRow>
@@ -100,9 +100,7 @@ export function DataTable<T extends { id: string }>({
                 </TableHead>
               ))}
               {rowActions.length > 0 && (
-                <TableHead
-                  className={rowActionsDisplay === "buttons" ? "w-32" : "w-12"}
-                >
+                <TableHead className="w-auto">
                   <span className="sr-only">Hành động</span>
                 </TableHead>
               )}

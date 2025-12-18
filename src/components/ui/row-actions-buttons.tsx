@@ -50,7 +50,7 @@ export function RowActionsButtons<T>({
 
   return (
     <>
-      <div className="flex items-center gap-1">
+      <div className="flex items-center gap-1 flex-nowrap">
         {actions.map((action, index) => (
           <Button
             key={index}
@@ -60,12 +60,12 @@ export function RowActionsButtons<T>({
             size="sm"
             onClick={() => handleActionClick(action)}
             disabled={action.disabled?.(row)}
-            className="h-8 px-2"
+            className="h-8 px-2 shrink-0"
             title={action.label} // Add tooltip for accessibility
           >
             {action.icon && <span className="">{action.icon}</span>}
             {action.label === "" ? null : (
-              <span className="hidden sm:inline">{action.label}</span>
+              <span className="hidden lg:inline">{action.label}</span>
             )}
           </Button>
         ))}

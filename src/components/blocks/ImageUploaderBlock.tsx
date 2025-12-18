@@ -14,7 +14,7 @@ import {
   ImageCropContent,
 } from "@/components/ui/kibo-ui/image-crop";
 import { UploadIcon, XIcon, FileImageIcon, Crop } from "lucide-react";
-import { useCallback, useState } from "react";
+import { useCallback, useState, useEffect } from "react";
 import { useDropzone } from "react-dropzone";
 import { cn } from "@/lib/utils";
 
@@ -32,7 +32,56 @@ interface ImageUploaderBlockProps {
   className?: string;
   placeholder?: string;
   onCroppedImageChange?: (croppedImageData: string | null) => void;
+  thumbnailSize?: number; // Max dimension for thumbnail
 }
+
+// Generate a thumbnail from an image source (File or data URL)
+const generateThumbnail = (
+  source: File | string,
+  maxSize: number = 200
+): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      let { width, height } = img;
+
+      // Calculate new dimensions maintaining aspect ratio
+      if (width > height) {
+        if (width > maxSize) {
+          height = (height * maxSize) / width;
+          width = maxSize;
+        }
+      } else {
+        if (height > maxSize) {
+          width = (width * maxSize) / height;
+          height = maxSize;
+        }
+      }
+
+      canvas.width = width;
+      canvas.height = height;
+
+      const ctx = canvas.getContext("2d");
+      if (!ctx) {
+        reject(new Error("Could not get canvas context"));
+        return;
+      }
+
+      ctx.drawImage(img, 0, 0, width, height);
+      resolve(canvas.toDataURL("image/jpeg", 0.7));
+    };
+
+    img.onerror = () => reject(new Error("Failed to load image"));
+
+    if (typeof source === "string") {
+      img.src = source;
+    } else {
+      img.src = URL.createObjectURL(source);
+    }
+  });
+};
 
 const ImageUploaderBlock = ({
   file = null,
@@ -49,16 +98,54 @@ const ImageUploaderBlock = ({
   className,
   placeholder = "Tải lên ảnh",
   onCroppedImageChange,
+  thumbnailSize = 200,
 }: ImageUploaderBlockProps) => {
   const [cropModalFile, setCropModalFile] = useState<File | null>(null);
   const [croppedImage, setCroppedImage] = useState<string | null>(null);
   const [croppedImages, setCroppedImages] = useState<Map<string, string>>(
     new Map()
   );
+  // Thumbnails for display (smaller size for performance)
+  const [thumbnails, setThumbnails] = useState<Map<string, string>>(new Map());
+  const [singleThumbnail, setSingleThumbnail] = useState<string | null>(null);
+
+  // Helper function to generate unique key for files
+  const getFileKey = (f: File) => f.name + f.size;
 
   // Use files/setFiles for multiple mode, file/setFile for single mode
   const currentFiles = multiple ? files : file ? [file] : [];
   const isAtMaxCapacity = multiple ? files.length >= maxFiles : !!file;
+
+  // Generate thumbnail when file changes (for files without crop)
+  useEffect(() => {
+    if (!multiple && file && !croppedImage) {
+      generateThumbnail(file, thumbnailSize)
+        .then(setSingleThumbnail)
+        .catch(console.error);
+    } else if (!file) {
+      setSingleThumbnail(null);
+    }
+  }, [file, multiple, thumbnailSize, croppedImage]);
+
+  // Generate thumbnails for multiple files
+  useEffect(() => {
+    if (multiple && files.length > 0) {
+      files.forEach((f) => {
+        const fileKey = getFileKey(f);
+        // Skip if we already have a cropped image thumbnail
+        if (croppedImages.has(fileKey)) return;
+        // Skip if we already have a thumbnail
+        if (thumbnails.has(fileKey)) return;
+
+        generateThumbnail(f, thumbnailSize)
+          .then((thumb) => {
+            setThumbnails((prev) => new Map(prev).set(fileKey, thumb));
+          })
+          .catch(console.error);
+      });
+    }
+  }, [files, multiple, thumbnailSize, croppedImages, thumbnails]);
+
   const onDrop = useCallback(
     (acceptedFiles: File[]) => {
       if (acceptedFiles.length === 0) return;
@@ -105,8 +192,13 @@ const ImageUploaderBlock = ({
       const fileToRemove = files[index];
       const fileKey = getFileKey(fileToRemove);
 
-      // Remove cropped image if exists
+      // Remove cropped image and thumbnail if exists
       setCroppedImages((prev) => {
+        const newMap = new Map(prev);
+        newMap.delete(fileKey);
+        return newMap;
+      });
+      setThumbnails((prev) => {
         const newMap = new Map(prev);
         newMap.delete(fileKey);
         return newMap;
@@ -117,6 +209,7 @@ const ImageUploaderBlock = ({
     } else {
       if (!setFile) return;
       setCroppedImage(null);
+      setSingleThumbnail(null);
       setFile(null);
       // Notify parent component that cropped image is cleared
       if (onCroppedImageChange) {
@@ -129,16 +222,21 @@ const ImageUploaderBlock = ({
     setCropModalFile(fileToEdit);
   };
 
-  const handleCropComplete = (croppedImageData: string) => {
+  const handleCropComplete = async (croppedImageData: string) => {
+    // Generate thumbnail from cropped image
+    const thumbnail = await generateThumbnail(croppedImageData, thumbnailSize);
+
     if (multiple) {
       if (cropModalFile) {
         const fileKey = getFileKey(cropModalFile);
         setCroppedImages((prev) =>
           new Map(prev).set(fileKey, croppedImageData)
         );
+        setThumbnails((prev) => new Map(prev).set(fileKey, thumbnail));
       }
     } else {
       setCroppedImage(croppedImageData);
+      setSingleThumbnail(thumbnail);
       // Notify parent component about the cropped image
       if (onCroppedImageChange) {
         onCroppedImageChange(croppedImageData);
@@ -150,8 +248,6 @@ const ImageUploaderBlock = ({
   const handleCropSkip = () => {
     setCropModalFile(null);
   };
-
-  const getFileKey = (file: File) => file.name + file.size;
 
   return (
     <div className={cn("w-full space-y-4", className)}>
@@ -234,26 +330,30 @@ const ImageUploaderBlock = ({
           >
             {currentFiles.map((fileItem, index) => {
               const fileKey = getFileKey(fileItem);
-              const fileImage = multiple
-                ? croppedImages.get(fileKey)
-                : croppedImage;
-              const preview = fileImage || URL.createObjectURL(fileItem);
+              // Use thumbnail for display (much smaller and faster)
+              const thumbnail = multiple
+                ? thumbnails.get(fileKey)
+                : singleThumbnail;
+
+              // Fallback to a placeholder if thumbnail is not ready yet
+              const preview = thumbnail || "";
 
               return (
                 <div
                   key={multiple ? index : 0}
                   className="relative group aspect-4/3   overflow-hidden rounded-lg border bg-gray-100"
                 >
-                  <img
-                    src={preview}
-                    alt={fileItem.name}
-                    className="w-full h-full object-cover"
-                    onLoad={() => {
-                      if (!fileImage) {
-                        URL.revokeObjectURL(preview);
-                      }
-                    }}
-                  />
+                  {preview ? (
+                    <img
+                      src={preview}
+                      alt={fileItem.name}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <div className="animate-pulse bg-gray-200 w-full h-full" />
+                    </div>
+                  )}
 
                   <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center space-x-2">
                     {enableCrop && (
