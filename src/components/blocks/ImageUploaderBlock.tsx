@@ -363,7 +363,7 @@ const ImageUploaderBlock = ({
               const thumbnail = multiple
                 ? thumbnails.get(fileKey)
                 : singleThumbnail;
-              
+
               // Get UUID for display
               const displayUUID = multiple
                 ? fileUUIDs.get(fileKey)
@@ -416,12 +416,12 @@ const ImageUploaderBlock = ({
                       </Button>
                     </div>
                   </div>
-                  
+
                   {/* File UUID display with truncation */}
                   {displayUUID && (
                     <div className="p-2 bg-gray-50 border-t">
-                      <p 
-                        className="text-xs text-gray-500 truncate" 
+                      <p
+                        className="text-xs text-gray-500 truncate"
                         title={displayUUID}
                       >
                         {displayUUID}
