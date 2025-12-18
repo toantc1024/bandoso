@@ -128,7 +128,13 @@ const HotspotInfoBlock: React.FC<HotspotInfoBlockProps> = ({
       formData.title !== (currentHotspot.title || "") ||
       formData.description !== (currentHotspot.description || "") ||
       formData.website !== (currentHotspot.website || "") ||
-      formData.address !== (currentHotspot.address || "");
+      formData.address !== (currentHotspot.address || "") ||
+      formData.click_panorama_id !== (currentHotspot.click_panorama_id || "") ||
+      formData.latitude !==
+        (currentHotspot.geolocation?.lat?.toString() || "") ||
+      formData.longitude !==
+        (currentHotspot.geolocation?.lon?.toString() || "") ||
+      previewImageFile !== null;
     if (!hasChanges) {
       toast.info("Không có thay đổi nào để cập nhật");
       return;
@@ -145,9 +151,9 @@ const HotspotInfoBlock: React.FC<HotspotInfoBlockProps> = ({
         geolocation:
           formData.latitude && formData.longitude
             ? {
-              lat: parseFloat(formData.latitude),
-              lon: parseFloat(formData.longitude),
-            }
+                lat: parseFloat(formData.latitude),
+                lon: parseFloat(formData.longitude),
+              }
             : undefined,
         click_panorama_id: formData.click_panorama_id.trim() || undefined,
       };
@@ -394,7 +400,9 @@ const HotspotInfoBlock: React.FC<HotspotInfoBlockProps> = ({
 
             {/* Panorama ID section */}
             <div className="grid gap-3 pt-4">
-              <Label htmlFor="click_panorama_id">Panorama ID chính của địa điểm</Label>
+              <Label htmlFor="click_panorama_id">
+                Panorama ID chính của địa điểm
+              </Label>
               <div className="flex space-x-2">
                 <Input
                   id="click_panorama_id"
@@ -605,9 +613,9 @@ const HotspotInfoBlock: React.FC<HotspotInfoBlockProps> = ({
               initialMarker={
                 formData.latitude && formData.longitude
                   ? [
-                    parseFloat(formData.longitude),
-                    parseFloat(formData.latitude),
-                  ]
+                      parseFloat(formData.longitude),
+                      parseFloat(formData.latitude),
+                    ]
                   : undefined
               }
               initialZoom={14}

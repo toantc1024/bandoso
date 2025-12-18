@@ -228,17 +228,21 @@ const PanoramaSelectionModal: React.FC<PanoramaSelectionModalProps> = ({
             <Button type="button" variant="outline" onClick={handleClose}>
               Hủy
             </Button>
-            {selectedPanoramaId && (
-              <Button type="button" variant="outline" onClick={handleClear}>
+            {(selectedPanoramaId || currentPanoramaId) && (
+              <Button type="button" variant="destructive" onClick={handleClear}>
                 Xóa lựa chọn
               </Button>
             )}
             <Button
               type="button"
               onClick={handleSelect}
-              disabled={!selectedPanoramaId}
+              disabled={
+                !selectedPanoramaId || selectedPanoramaId === currentPanoramaId
+              }
             >
-              {selectedPanoramaId ? "Xác nhận chọn" : "Chọn một panorama"}
+              {selectedPanoramaId && selectedPanoramaId !== currentPanoramaId
+                ? "Xác nhận chọn"
+                : "Chọn một panorama"}
             </Button>
           </div>
         </DialogFooter>
