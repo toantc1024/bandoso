@@ -363,6 +363,11 @@ const ImageUploaderBlock = ({
               const thumbnail = multiple
                 ? thumbnails.get(fileKey)
                 : singleThumbnail;
+              
+              // Get UUID for display
+              const displayUUID = multiple
+                ? fileUUIDs.get(fileKey)
+                : singleFileUUID;
 
               // Fallback to a placeholder if thumbnail is not ready yet
               const preview = thumbnail || "";
@@ -370,45 +375,59 @@ const ImageUploaderBlock = ({
               return (
                 <div
                   key={multiple ? index : 0}
-                  className="relative group aspect-4/3   overflow-hidden rounded-lg border bg-gray-100"
+                  className="relative group overflow-hidden rounded-lg border bg-gray-100"
                 >
-                  {preview ? (
-                    <img
-                      src={preview}
-                      alt={fileItem.name}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <div className="animate-pulse bg-gray-200 w-full h-full" />
-                    </div>
-                  )}
+                  <div className="aspect-4/3">
+                    {preview ? (
+                      <img
+                        src={preview}
+                        alt={displayUUID || fileItem.name}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <div className="animate-pulse bg-gray-200 w-full h-full" />
+                      </div>
+                    )}
 
-                  <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center space-x-2">
-                    {enableCrop && (
+                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center space-x-2">
+                      {enableCrop && (
+                        <Button
+                          type="button"
+                          variant="secondary"
+                          size="sm"
+                          onClick={() => openCropModal(fileItem)}
+                          title="Cắt ảnh"
+                          className="bg-white/90 hover:bg-white text-gray-900"
+                        >
+                          <Crop className="h-4 w-4" />
+                        </Button>
+                      )}
+
                       <Button
                         type="button"
                         variant="secondary"
                         size="sm"
-                        onClick={() => openCropModal(fileItem)}
-                        title="Cắt ảnh"
+                        onClick={() => removeFile(multiple ? index : undefined)}
+                        title="Xóa ảnh"
                         className="bg-white/90 hover:bg-white text-gray-900"
                       >
-                        <Crop className="h-4 w-4" />
+                        <XIcon className="h-4 w-4" />
                       </Button>
-                    )}
-
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      size="sm"
-                      onClick={() => removeFile(multiple ? index : undefined)}
-                      title="Xóa ảnh"
-                      className="bg-white/90 hover:bg-white text-gray-900"
-                    >
-                      <XIcon className="h-4 w-4" />
-                    </Button>
+                    </div>
                   </div>
+                  
+                  {/* File UUID display with truncation */}
+                  {displayUUID && (
+                    <div className="p-2 bg-gray-50 border-t">
+                      <p 
+                        className="text-xs text-gray-500 truncate" 
+                        title={displayUUID}
+                      >
+                        {displayUUID}
+                      </p>
+                    </div>
+                  )}
                 </div>
               );
             })}
