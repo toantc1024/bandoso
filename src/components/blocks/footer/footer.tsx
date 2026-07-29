@@ -34,7 +34,7 @@ const FooterSection = () => {
                 bandoso.yhcmute.com
               </a>
               <br />
-              Bản quyền thuộc về Đoàn Trường Đại học Sư phạm Kỹ thuật TP. Hồ Chí
+              Bản quyền thuộc về Đoàn Trường Đại học Công nghệ Kỹ thuật TP. Hồ Chí
               Minh.
             </span>
           </div>

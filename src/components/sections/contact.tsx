@@ -35,14 +35,14 @@ export function ContactSection() {
             </div>
             <h3 className="mt-6 font-bold text-xl text-blue-950">Đơn vị thực hiện</h3>
             <p className="mt-2 text-blue-800/90 font-medium">
-              Đoàn Trường Đại học Sư phạm Kỹ thuật Tp.HCM
+              Đoàn Trường Đại học Công nghệ Kỹ thuật Tp.HCM
             </p>
             <a
               className="mt-4 font-semibold text-blue-600 hover:text-blue-800 underline underline-offset-4 max-w-lg leading-relaxed"
               href="https://maps.google.com"
               target="_blank"
             >
-              Số 1 Võ Văn Ngân, P. Linh Chiểu, TP. Thủ Đức,
+              Số 1 Võ Văn Ngân, P. Linh Chiểu, P. Thủ Đức,
               <br /> Thành phố Hồ Chí Minh
             </a>
           </div>
