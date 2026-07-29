@@ -44,20 +44,19 @@ export function AboutSection() {
               <figure
                 key={idx}
                 className={cn(
-                  "relative w-32 cursor-pointer overflow-hidden rounded-xl border p-4",
-                  "border-gray-950/[.1] bg-gray-950/[.01] hover:bg-gray-950/[.05]",
-                  "dark:border-gray-50/[.1] dark:bg-gray-50/[.10] dark:hover:bg-gray-50/[.15]",
-                  "transform-gpu blur-[1px] transition-all duration-300 ease-out hover:blur-none"
+                  "relative w-36 cursor-pointer overflow-hidden rounded-xl border p-3",
+                  "border-blue-200/80 bg-white/90 hover:bg-blue-50/80 shadow-xs",
+                  "transform-gpu blur-[0.5px] transition-all duration-300 ease-out hover:blur-none"
                 )}
               >
                 <div className="flex flex-row items-center gap-2">
                   <div className="flex flex-col">
-                    <figcaption className="text-sm text-nowrap font-medium dark:text-white ">
+                    <figcaption className="text-sm font-bold text-blue-950 truncate">
                       {f.name}
                     </figcaption>
                   </div>
                 </div>
-                <blockquote className="mt-2 text-xs">{f.body}</blockquote>
+                <blockquote className="mt-1 text-xs text-blue-700 font-medium line-clamp-2">{f.body}</blockquote>
               </figure>
             ))}
           </Marquee>

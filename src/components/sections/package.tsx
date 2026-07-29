@@ -43,41 +43,42 @@ const packages = [
 ];
 
 import { TextAnimate } from "../magicui/text-animate";
-import GradientCardBlock from "../blocks/GradientCardBlock";
 export function PackageSection() {
   return (
     <section className="pt-8 px-4 pb-32 sm:pt-12 sm:px-6 md:pt-8 lg:px-32  flex w-full justify-center">
       <div className="container ">
-        <h2 className="py-8  text-2xl text-center font-bold md:text-4xl lg:text-5xl">
+        <h2 className="py-8 text-2xl text-center font-extrabold text-blue-950 md:text-4xl lg:text-5xl">
           <TextAnimate animation="blurIn" as="h1">
             Giá trị mang lại
           </TextAnimate>
         </h2>
-        <div className="mt-2 max-w-screen-lg mx-auto grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div className="mt-2 max-w-screen-lg mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6">
           {packages.map((_package) => (
             <div key={_package.name}>
-              <GradientCardBlock className="border rounded-lg p-6">
-                <h3 className="text-lg font-medium">{_package.name}</h3>
-                <p className="mt-4 font-medium text-muted-foreground">
-                  {_package.description}
-                </p>
-                <Separator className="my-4" />
-                <ul className="space-y-2">
-                  {_package.features.map((feature) => (
-                    <li key={feature} className="flex items-start gap-2">
-                      <CircleCheck className="h-4 w-4 mt-1 text-green-600" />{" "}
-                      {feature}
-                    </li>
-                  ))}
-                </ul>
+              <div className="border border-blue-200/90 bg-white/95 rounded-2xl p-6 shadow-xs hover:shadow-md hover:border-blue-300 transition-all flex flex-col justify-between h-full">
+                <div>
+                  <h3 className="text-xl font-bold text-blue-950">{_package.name}</h3>
+                  <p className="mt-2 text-sm font-medium text-blue-700 leading-relaxed">
+                    {_package.description}
+                  </p>
+                  <Separator className="my-4 bg-blue-100" />
+                  <ul className="space-y-2.5">
+                    {_package.features.map((feature) => (
+                      <li key={feature} className="flex items-start gap-2.5 text-sm text-blue-900 font-medium">
+                        <CircleCheck className="h-4 w-4 mt-0.5 text-blue-600 shrink-0" />{" "}
+                        {feature}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
                 <Button
-                  variant={_package.isPopular ? "default" : "outline"}
+                  variant="default"
                   size="lg"
-                  className="w-full mt-6"
+                  className="w-full mt-6 rounded-full bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow-xs"
                 >
                   {_package.buttonText}
                 </Button>
-              </GradientCardBlock>
+              </div>
             </div>
           ))}
         </div>

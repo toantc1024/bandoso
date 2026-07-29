@@ -31,7 +31,7 @@ const LandingPage = () => {
     <>
       {isLoading && <LoaderBlock />}
 
-      <div className="dark bg-background text-foreground w-full relative min-h-screen overflow-x-hidden">
+      <div className="bg-background text-foreground w-full relative min-h-screen overflow-x-hidden">
         <Navbar
           ref={navbarRef}
           activeSection={activeSection}
@@ -64,9 +64,10 @@ const LandingPage = () => {
             onClick={() => {
               window.open("https://www.facebook.com/tuoitreHCMUTE ", "_blank");
             }}
-            className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 lg:w-18 lg:h-18 rounded-full glass glass-light p-1.5 sm:p-2 flex justify-center items-center glass-hover cursor-pointer transition-all duration-300 hover:scale-105"
+            className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-full bg-[#1877F2] text-white p-2 flex justify-center items-center cursor-pointer transition-all duration-300 hover:scale-110 shadow-lg hover:shadow-xl border border-blue-300/40"
+            title="Fanpage Tuổi trẻ HCMUTE"
           >
-            <Facebook className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 lg:w-9 lg:h-9 text-white" />
+            <Facebook className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 fill-current text-white" />
             <div
               className="tooltip tooltip-top hidden sm:block"
               data-tip="Hỗ trợ trực tuyến"

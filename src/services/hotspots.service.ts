@@ -347,13 +347,13 @@ export const getPreviewHotspotsWithAreas = async (): Promise<
     const result = await queryData<WithJoins<Hotspot>>(
       "hotspots",
       undefined,
-      { limit: 20 },
+      { limit: 100 },
       {
         joins: [
           {
             table: "areas",
-            columns: "area_name",
-            foreignKey: "area_id",
+            columns: "area_name,domain",
+            foreignKey: "fk_hotspots_area_id__areas_area_id",
             alias: "area",
           },
         ],

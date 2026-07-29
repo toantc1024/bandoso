@@ -26,14 +26,16 @@ export const NavMenu = ({
 
   return (
     <NavigationMenu {...props}>
-      <NavigationMenuList className="lg:border-[1px] lg:rounded-full p-1 border-white/20 gap-2 space-x-0 data-[orientation=vertical]:flex-col data-[orientation=vertical]:items-start">
+      <NavigationMenuList className="lg:border lg:border-blue-200/80 lg:bg-blue-50/50 lg:rounded-full p-1 gap-1.5 space-x-0 data-[orientation=vertical]:flex-col data-[orientation=vertical]:items-start">
         {mainSections.map((section) => (
           <NavigationMenuItem key={section.id}>
             <NavigationMenuLink asChild>
               <Button
                 variant="ghost"
-                className={`rounded-full cursor-pointer glass-hover hover:text-white! ${
-                  activeSection === section.id ? "glass !text-white" : ""
+                className={`rounded-full cursor-pointer font-medium transition-all duration-200 ${
+                  activeSection === section.id
+                    ? "bg-blue-600 text-white hover:bg-blue-700 hover:text-white shadow-xs font-semibold"
+                    : "text-blue-950 hover:bg-blue-100/70 hover:text-blue-600"
                 }`}
                 onClick={() => onNavigate?.(section.id)}
               >

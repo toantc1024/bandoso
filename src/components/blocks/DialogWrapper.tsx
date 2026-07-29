@@ -103,9 +103,9 @@ const DialogWrapper = ({
       <DialogTrigger asChild>{trigger}</DialogTrigger>
 
       <DialogContent
-        className={`glass ${
+        className={`bg-white/95 backdrop-blur-xl ${
           size !== "entire" ? "rounded-2xl !p-0" : "rounded-none"
-        } border border-white/20 p-0 overflow-hidden flex flex-col ${getSizeClasses()} ${className}`}
+        } border border-blue-200 shadow-2xl p-0 overflow-hidden flex flex-col ${getSizeClasses()} ${className}`}
         showCloseButton={false}
       >
         {/* Always include DialogTitle for accessibility */}
@@ -117,7 +117,7 @@ const DialogWrapper = ({
 
         {/* Header - Fixed */}
         {showHeader && (
-          <DialogHeader className="p-4 sm:p-6 pb-3 sm:pb-4 flex-shrink-0 border-b border-white/10">
+          <DialogHeader className="p-4 sm:p-6 pb-3 sm:pb-4 flex-shrink-0 border-b border-blue-100">
             <div className="flex items-center justify-between">
               {customHeader ? (
                 // Custom header content
@@ -126,18 +126,18 @@ const DialogWrapper = ({
                 // Default header content
                 <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
                   {headerIcon && (
-                    <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl glass-light flex items-center justify-center flex-shrink-0">
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-blue-100/80 text-blue-600 border border-blue-200 flex items-center justify-center flex-shrink-0">
                       {headerIcon}
                     </div>
                   )}
                   <div className="flex-1 min-w-0">
                     {title && (
-                      <DialogTitle className="text-white text-base sm:text-lg font-bold truncate">
+                      <DialogTitle className="text-blue-950 text-base sm:text-lg font-bold truncate">
                         {title}
                       </DialogTitle>
                     )}
                     {description && (
-                      <DialogDescription className="text-white/60 text-xs sm:text-sm truncate">
+                      <DialogDescription className="text-blue-700 text-xs sm:text-sm font-medium truncate">
                         {description}
                       </DialogDescription>
                     )}
@@ -149,9 +149,9 @@ const DialogWrapper = ({
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="rounded-full w-7 h-7  sm:w-8 sm:h-8 p-0 glass-light glass-hover text-white/60 hover:text-white flex-shrink-0 ml-2"
+                    className="rounded-full w-7 h-7 sm:w-8 sm:h-8 p-0 bg-blue-50 hover:bg-blue-100 text-blue-600 hover:text-blue-900 border border-blue-200 flex-shrink-0 ml-2"
                   >
-                    <X className="w-3 h-3 sm:w-4 sm:h-4" />
+                    <X className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                   </Button>
                 </DialogClose>
               )}

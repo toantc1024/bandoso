@@ -26,9 +26,9 @@ export default function HeroSection() {
             [12, 15],
             [15, 10],
             [10, 15],
-            [15, 10],
-            [10, 15],
-            [15, 10],
+            [14, 8],
+            [8, 14],
+            [6, 12],
           ]}
           className={cn(
             "[mask-image:radial-gradient(400px_circle_at_center,white,transparent)]",
@@ -36,37 +36,37 @@ export default function HeroSection() {
           )}
         />
       </div>
-      <div className="relative z-[20] text-center max-w-2xl   ">
-        <Badge className="text-white rounded-full py-2 text-md bg-background glass glass-light">
+      <div className="relative z-[20] text-center max-w-2xl">
+        <Badge className="text-blue-900 border border-blue-200 rounded-full py-1.5 px-4 text-sm bg-blue-50/80 font-medium shadow-xs inline-flex items-center gap-1.5">
           Công nghệ{" "}
-          <Badge className="text-white py-1  rounded-full !bg-primary">
+          <Badge className="text-white py-0.5 px-2 rounded-full bg-blue-600 font-semibold border-none">
             VR
           </Badge>
         </Badge>
-        <h1 className="mt-6 text-3xl sm:text-5xl md:text-6xl font-bold !leading-[1.2] tracking-tight">
+        <h1 className="mt-6 text-3xl sm:text-5xl md:text-6xl font-extrabold text-blue-950 !leading-[1.2] tracking-tight">
           Nền tảng trải nghiệm
           <br />
           <AuroraText>Lịch sử số & Thực tế ảo</AuroraText>
         </h1>
-        <p className="mt-6 text-[17px] md:text-lg">
+        <p className="mt-6 text-[17px] md:text-lg text-blue-700 font-medium max-w-xl mx-auto leading-relaxed">
           Khám phá truyền thống - Lịch sử - văn hoá bằng Công nghệ Số.
         </p>
-        <div className="mt-6 flex flex-col sm:flex-row items-center z-[30] justify-center gap-3 sm:gap-4 w-full max-w-4xl">
+        <div className="mt-8 flex flex-col sm:flex-row items-center z-[30] justify-center gap-3 sm:gap-4 w-full max-w-4xl">
           <Button
             onClick={() => {
               setAreaSearchDialogOpen(true);
             }}
             size="lg"
-            className="rounded-full cursor-pointer text-white w-full sm:w-auto min-w-[140px]"
+            className="rounded-full cursor-pointer bg-blue-600 text-white hover:bg-blue-700 font-semibold w-full sm:w-auto min-w-[140px] shadow-sm hover:shadow-md transition-all"
           >
             Bắt đầu <ArrowUpRight className="!h-5 !w-5" />
           </Button>
           <Button
             variant="outline"
             size="lg"
-            className="rounded-full cursor-pointer backdrop-blur-xl text-base shadow-none w-full sm:w-auto min-w-[130px]"
+            className="rounded-full cursor-pointer border-blue-200 text-blue-900 bg-white/90 hover:bg-blue-50 hover:text-blue-700 hover:border-blue-300 font-medium text-base shadow-xs w-full sm:w-auto min-w-[130px] transition-all"
           >
-            <Gamepad2 className="!h-5 !w-5" />
+            <Gamepad2 className="!h-5 !w-5 text-blue-600" />
             <span className="hidden sm:inline">Trò chơi Lịch sử</span>
             <span className="sm:hidden">Trò chơi</span>
           </Button>
@@ -74,29 +74,29 @@ export default function HeroSection() {
           <Button
             variant="outline"
             size="lg"
-            className="rounded-full cursor-pointer backdrop-blur-xl text-base shadow-none w-full sm:w-auto min-w-[130px]"
+            className="rounded-full cursor-pointer border-blue-200 text-blue-900 bg-white/90 hover:bg-blue-50 hover:text-blue-700 hover:border-blue-300 font-medium text-base shadow-xs w-full sm:w-auto min-w-[130px] transition-all"
           >
-            <RiChatAiFill className="!h-5 !w-5" />
+            <RiChatAiFill className="!h-5 !w-5 text-blue-600" />
             <span className="">AI Chatbot</span>
           </Button>
           <Button
             variant="outline"
             size="lg"
-            className="rounded-full cursor-pointer backdrop-blur-xl text-base shadow-none w-full sm:w-auto min-w-[130px]"
+            className="rounded-full cursor-pointer border-blue-200 text-blue-900 bg-white/90 hover:bg-blue-50 hover:text-blue-700 hover:border-blue-300 font-medium text-base shadow-xs w-full sm:w-auto min-w-[130px] transition-all"
           >
-            <CirclePlay className="!h-5 !w-5" />
+            <CirclePlay className="!h-5 !w-5 text-blue-600" />
             <span className="hidden sm:inline">Video 360</span>
             <span className="sm:hidden">Video</span>
           </Button>
         </div>
       </div>
-      <div className="relative mt-6 rounded-3xl w-full  aspect-video">
-        <div className="absolute z-[0] top-2 lg:-top-8 left-1/2 transform -translate-x-1/2 w-[90%] mx-auto h-24 lg:h-80 bg-primary/50 rounded-full blur-3xl"></div>
-        <div className=" w-full  max-w-screen-xl mx-auto z-[1] absolute left-0 right-0 aspect-video">
-          <Card className="relative overflow-hidden !p-0  h-full  w-full">
+      <div className="relative mt-6 rounded-3xl w-full min-h-[480px] h-[520px]">
+        <div className="absolute z-[0] top-2 lg:-top-8 left-1/2 transform -translate-x-1/2 w-[90%] mx-auto h-24 lg:h-80 bg-blue-400/20 rounded-full blur-3xl"></div>
+        <div className="w-full max-w-screen-xl mx-auto z-[1] absolute inset-0 h-full">
+          <Card className="relative overflow-hidden !p-0 h-full w-full border border-blue-200 shadow-md">
             <ShineBorder
               borderWidth={2}
-              shineColor={["#A07CFE", "#FE8FB5", "#FFBE7B"]}
+              shineColor={["#3b82f6", "#60a5fa", "#93c5fd"]}
             />
 
             <CardContent className="h-full !p-0">
@@ -105,7 +105,6 @@ export default function HeroSection() {
                 setOpened={() => {}}
                 showMedia={() => {}}
               />
-              {/* <iframe src="./vr_core/index.htm" className=" w-full h-full" /> */}
             </CardContent>
           </Card>
         </div>

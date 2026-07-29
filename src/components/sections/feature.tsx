@@ -3,7 +3,7 @@ import { Marquee } from "@/components/magicui/marquee";
 import { TextAnimate } from "../magicui/text-animate";
 import { useEffect, useMemo, useState } from "react";
 import { Button } from "../ui/button";
-import { ArrowRight, X } from "lucide-react";
+import { ArrowRight, MapPin, X } from "lucide-react";
 import useVRStore from "@/stores/vr.store";
 import useAreaSearchStore from "@/stores/area-search.store";
 import { MultipleSelector, type Option } from "@/components/ui/multi-select";
@@ -23,32 +23,42 @@ const HotspotCard = ({
   description: string;
   area_name?: string;
 }) => {
+  const [imgError, setImgError] = useState(false);
+
   return (
     <figure
       className={cn(
-        "relative h-full w-64 cursor-pointer overflow-hidden rounded-xl border p-4",
-        // light styles
-        "border-gray-950/[.1] bg-gray-950/[.01] hover:bg-gray-950/[.05]",
-        // dark styles
-        "dark:border-gray-50/[.1] dark:bg-gray-50/[.10] dark:hover:bg-gray-50/[.15]"
+        "relative h-48 w-80 sm:w-96 cursor-pointer overflow-hidden rounded-xl border p-4 flex flex-col justify-between transition-all duration-300 hover:shadow-md hover:-translate-y-0.5",
+        "border-blue-200/90 bg-white/90 text-blue-950 shadow-xs hover:border-blue-400 hover:bg-blue-50/70"
       )}
     >
-      <div className="flex flex-row items-center gap-2">
-        <img
-          className="rounded-lg h-10 w-10 object-cover"
-          alt=""
-          src={preview_image}
-        />
-        <div className="flex flex-col">
-          <figcaption className="text-sm font-medium dark:text-white">
+      <div className="flex flex-row items-center gap-3">
+        {!preview_image || imgError ? (
+          <div className="rounded-lg h-12 w-12 bg-blue-100/80 flex items-center justify-center text-blue-600 shrink-0 border border-blue-200">
+            <MapPin className="w-6 h-6" />
+          </div>
+        ) : (
+          <img
+            className="rounded-lg h-12 w-12 object-cover shrink-0 border border-blue-200"
+            alt={title}
+            src={preview_image}
+            onError={() => setImgError(true)}
+          />
+        )}
+        <div className="flex flex-col min-w-0">
+          <figcaption className="text-base font-bold truncate text-blue-950">
             {title}
           </figcaption>
           {area_name && (
-            <span className="text-xs text-muted-foreground">{area_name}</span>
+            <span className="text-xs text-blue-600 truncate font-semibold">
+              {area_name}
+            </span>
           )}
         </div>
       </div>
-      <blockquote className="mt-2 text-sm">{description}</blockquote>
+      <blockquote className="mt-2 text-sm text-blue-800/90 font-medium line-clamp-3 leading-relaxed">
+        {description}
+      </blockquote>
     </figure>
   );
 };
@@ -116,7 +126,7 @@ export function FeatureSection() {
             Khám phá ngay các địa điểm
           </TextAnimate>
         </h2>{" "}
-        <div className="dark max-w-xs mx-auto pb-8">
+        <div className="max-w-xs mx-auto pb-8">
           <div className="space-y-2">
             <MultipleSelector
               options={areaOptions}
@@ -189,7 +199,7 @@ export function FeatureSection() {
               setAreaSearchDialogOpen(true);
             }}
             size="lg"
-            className="cursor-pointer rounded-full text-white"
+            className="cursor-pointer rounded-full bg-blue-600 hover:bg-blue-700 font-semibold text-white shadow-md hover:shadow-lg transition-all"
           >
             Khám phá <ArrowRight className="!h-5 !w-5" />
           </Button>
