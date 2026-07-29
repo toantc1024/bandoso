@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import { Marquee } from "@/components/magicui/marquee";
+
 import { TextAnimate } from "../magicui/text-animate";
 import { useEffect, useMemo, useState } from "react";
 import { Button } from "../ui/button";
@@ -38,7 +38,7 @@ const HotspotCard = ({
     <figure
       onClick={handleClick}
       className={cn(
-        "relative h-48 w-80 sm:w-96 overflow-hidden rounded-xl border p-4 flex flex-col justify-between transition-all duration-300 hover:shadow-md hover:-translate-y-0.5",
+        "relative h-48 w-full overflow-hidden rounded-xl border p-4 flex flex-col justify-between transition-all duration-300 hover:shadow-md hover:-translate-y-0.5",
         hasUrl
           ? "cursor-pointer border-blue-200/90 bg-white/90 text-blue-950 shadow-xs hover:border-blue-400 hover:bg-blue-50/70"
           : "cursor-default border-gray-200/90 bg-white/90 text-blue-950 shadow-xs"
@@ -114,8 +114,8 @@ export function FeatureSection() {
     })();
   }, [selectedAreas]);
 
-  const { firstRow, secondRow } = useMemo(() => {
-    const group_hotspots = hotspots.map((hotspot) => {
+  const allHotspots = useMemo(() => {
+    return hotspots.map((hotspot) => {
       // Extract area name and domain from joined data
       const areaName =
         hotspot.area && Array.isArray(hotspot.area) && hotspot.area.length > 0
@@ -141,11 +141,6 @@ export function FeatureSection() {
         url,
       };
     });
-
-    return {
-      firstRow: group_hotspots.slice(0, Math.ceil(group_hotspots.length / 2)),
-      secondRow: group_hotspots.slice(Math.ceil(group_hotspots.length / 2)),
-    };
   }, [hotspots]);
 
   const areaOptions: Option[] = useMemo(() => {
@@ -198,22 +193,15 @@ export function FeatureSection() {
             )}
           </div>
         </div>
-        <div className="relative flex w-full flex-col items-center justify-center overflow-hidden">
+        <div className="relative w-full">
           {hotspots.length > 0 ? (
-            <>
-              <Marquee pauseOnHover className="[--duration:20s]">
-                {firstRow.map((hotspot) => (
+            <div className="max-h-[600px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-blue-300 scrollbar-track-transparent">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {allHotspots.map((hotspot) => (
                   <HotspotCard key={hotspot.hotspot_id} {...hotspot} />
                 ))}
-              </Marquee>
-              <Marquee reverse pauseOnHover className="[--duration:20s]">
-                {secondRow.map((hotspot) => (
-                  <HotspotCard key={hotspot.hotspot_id} {...hotspot} />
-                ))}
-              </Marquee>
-              <div className="pointer-events-none absolute inset-y-0 left-0 w-1/4 bg-gradient-to-r from-background"></div>
-              <div className="pointer-events-none absolute inset-y-0 right-0 w-1/4 bg-gradient-to-l from-background"></div>
-            </>
+              </div>
+            </div>
           ) : selectedAreas.length > 0 ? (
             <div className="text-center py-12">
               <p className="text-muted-foreground">
