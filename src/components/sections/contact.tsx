@@ -42,7 +42,7 @@ export function ContactSection() {
               href="https://maps.google.com"
               target="_blank"
             >
-              Số 1 Võ Văn Ngân, P. Linh Chiểu, P. Thủ Đức,
+              Số 1 Võ Văn Ngân, P. Thủ Đức,
               <br /> Thành phố Hồ Chí Minh
             </a>
           </div>
