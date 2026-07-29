@@ -3,7 +3,7 @@ import { Marquee } from "@/components/magicui/marquee";
 import { TextAnimate } from "../magicui/text-animate";
 import { useEffect, useMemo, useState } from "react";
 import { Button } from "../ui/button";
-import { ArrowRight, MapPin, X } from "lucide-react";
+import { ArrowRight, ExternalLink, LinkIcon, MapPin, X } from "lucide-react";
 import useVRStore from "@/stores/vr.store";
 import useAreaSearchStore from "@/stores/area-search.store";
 import { MultipleSelector, type Option } from "@/components/ui/multi-select";
@@ -16,22 +16,48 @@ const HotspotCard = ({
   title,
   description,
   area_name,
+  url,
 }: {
   preview_image: string;
   title: string;
   hotspot_id: string;
   description: string;
   area_name?: string;
+  url?: string;
 }) => {
   const [imgError, setImgError] = useState(false);
+  const hasUrl = !!url;
+
+  const handleClick = () => {
+    if (hasUrl) {
+      window.open(url, "_blank", "noopener,noreferrer");
+    }
+  };
 
   return (
     <figure
+      onClick={handleClick}
       className={cn(
-        "relative h-48 w-80 sm:w-96 cursor-pointer overflow-hidden rounded-xl border p-4 flex flex-col justify-between transition-all duration-300 hover:shadow-md hover:-translate-y-0.5",
-        "border-blue-200/90 bg-white/90 text-blue-950 shadow-xs hover:border-blue-400 hover:bg-blue-50/70"
+        "relative h-48 w-80 sm:w-96 overflow-hidden rounded-xl border p-4 flex flex-col justify-between transition-all duration-300 hover:shadow-md hover:-translate-y-0.5",
+        hasUrl
+          ? "cursor-pointer border-blue-200/90 bg-white/90 text-blue-950 shadow-xs hover:border-blue-400 hover:bg-blue-50/70"
+          : "cursor-default border-gray-200/90 bg-white/90 text-blue-950 shadow-xs"
       )}
     >
+      {/* URL indicator badge */}
+      <div className="absolute top-2 right-2">
+        {hasUrl ? (
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 text-[10px] font-semibold border border-blue-200">
+            <ExternalLink className="w-3 h-3" />
+            VR 360
+          </span>
+        ) : (
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-gray-100 text-gray-400 text-[10px] font-semibold border border-gray-200">
+            <LinkIcon className="w-3 h-3" />
+            Chưa có URL
+          </span>
+        )}
+      </div>
       <div className="flex flex-row items-center gap-3">
         {!preview_image || imgError ? (
           <div className="rounded-lg h-12 w-12 bg-blue-100/80 flex items-center justify-center text-blue-600 shrink-0 border border-blue-200">
@@ -45,7 +71,7 @@ const HotspotCard = ({
             onError={() => setImgError(true)}
           />
         )}
-        <div className="flex flex-col min-w-0">
+        <div className="flex flex-col min-w-0 pr-16">
           <figcaption className="text-base font-bold truncate text-blue-950">
             {title}
           </figcaption>
@@ -90,11 +116,21 @@ export function FeatureSection() {
 
   const { firstRow, secondRow } = useMemo(() => {
     const group_hotspots = hotspots.map((hotspot) => {
-      // Extract area name from joined data
+      // Extract area name and domain from joined data
       const areaName =
         hotspot.area && Array.isArray(hotspot.area) && hotspot.area.length > 0
           ? hotspot.area[0].area_name
           : undefined;
+
+      const areaDomain =
+        hotspot.area && Array.isArray(hotspot.area) && hotspot.area.length > 0
+          ? hotspot.area[0].domain
+          : undefined;
+
+      // Construct the /app URL from the area's domain
+      const url = areaDomain
+        ? `${areaDomain.replace(/\/$/, "")}/app`
+        : undefined;
 
       return {
         preview_image: hotspot.preview_image || "",
@@ -102,6 +138,7 @@ export function FeatureSection() {
         hotspot_id: String(hotspot.hotspot_id),
         description: hotspot.description || "",
         area_name: areaName,
+        url,
       };
     });
 

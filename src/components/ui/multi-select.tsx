@@ -85,7 +85,7 @@ export function MultipleSelector({
                 {visibleItems.map((val, i) => (
                   <div
                     key={i}
-                    className="group flex items-center gap-1 px-2 py-1 rounded-xl border bg-white/20 backdrop-blur-sm text-white text-xs font-medium hover:bg-white/30 transition-colors"
+                    className="group flex items-center gap-1 px-2 py-1 rounded-xl border border-blue-300 bg-blue-500 backdrop-blur-sm text-white text-xs font-medium hover:bg-blue-600 transition-colors"
                   >
                     <span>
                       {options.find((option) => option.value === val)?.label}
@@ -99,7 +99,7 @@ export function MultipleSelector({
                   </div>
                 ))}
                 {hiddenCount > 0 && (
-                  <div className="px-2 py-1 rounded-xl border bg-white/10 backdrop-blur-sm text-white text-xs font-medium">
+                  <div className="px-2 py-1 rounded-xl border border-blue-300 bg-blue-400 backdrop-blur-sm text-white text-xs font-medium">
                     +{hiddenCount} khác
                   </div>
                 )}
