@@ -195,13 +195,17 @@ export function FeatureSection() {
         </div>
         <div className="relative w-full">
           {hotspots.length > 0 ? (
-            <div className="max-h-[600px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-blue-300 scrollbar-track-transparent">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {allHotspots.map((hotspot) => (
-                  <HotspotCard key={hotspot.hotspot_id} {...hotspot} />
-                ))}
+            <>
+              <div className="max-h-[600px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-blue-300 scrollbar-track-transparent">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 py-2">
+                  {allHotspots.map((hotspot) => (
+                    <HotspotCard key={hotspot.hotspot_id} {...hotspot} />
+                  ))}
+                </div>
               </div>
-            </div>
+              <div className="pointer-events-none absolute top-0 left-0 right-0 h-8 bg-gradient-to-b from-background to-transparent z-10"></div>
+              <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-background to-transparent z-10"></div>
+            </>
           ) : selectedAreas.length > 0 ? (
             <div className="text-center py-12">
               <p className="text-muted-foreground">
