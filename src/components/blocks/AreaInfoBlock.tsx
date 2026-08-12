@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { RotateCcw, Save, MapPin, Music, Loader2 } from "lucide-react";
+import { RotateCcw, Save, MapPin, Music, Loader2, Trash2 } from "lucide-react";
 import HotspotSelectionModal from "./HotspotSelectionModal";
 import { Spinner } from "../ui/shadcn-io/spinner";
 import AudioPlayer from "../ui/AudioPlayer";
@@ -107,24 +107,33 @@ const AreaInfoBlock = ({ areaId }: { areaId: string | undefined }) => {
     }
   };
 
+  const handleDeleteBgMusic = () => {
+    setBgMusicUrl("");
+    toast.success("Đã xóa nhạc nền hiện tại. Hãy nhấn 'Cập nhật' để lưu thay đổi.");
+  };
+
   const handleUpdate = async () => {
     if (!areaId || !formData) return;
 
     try {
       setIsLoading(true);
+      const currentMetadata = area?.metadata || {};
+      const newMetadata = {
+        ...currentMetadata,
+        ...(formData.metadata || {}),
+        bg_music_url: bgMusicUrl.trim() ? bgMusicUrl.trim() : null,
+      };
+
       const updateData: Partial<Area> = {
         ...formData,
-        metadata: {
-          ...(area?.metadata || {}),
-          ...(formData.metadata || {}),
-          bg_music_url: bgMusicUrl || undefined,
-        },
+        metadata: newMetadata,
       };
 
       const updatedArea = await updateArea(areaId, updateData);
       setArea(updatedArea);
       setFormData(updatedArea);
-      toast.success("Cập nhật thông tin khu vực thành công");
+      setBgMusicUrl(updatedArea.metadata?.bg_music_url || "");
+      toast.success("Cập nhật thông tin khu vực thành công!");
     } catch (error) {
       toast.error("Không thể cập nhật khu vực");
       console.error("Error updating area:", error);
@@ -136,7 +145,7 @@ const AreaInfoBlock = ({ areaId }: { areaId: string | undefined }) => {
   const handleReset = () => {
     setFormData(area || {});
     setBgMusicUrl(area?.metadata?.bg_music_url || "");
-    toast.info("Đã đặt lại form về giá trị ban đầu");
+    toast.info("Đã đặt lại thông tin về ban đầu");
   };
 
   const handleHotspotSelect = (hotspotId: string) => {
@@ -270,18 +279,18 @@ const AreaInfoBlock = ({ areaId }: { areaId: string | undefined }) => {
         </CardContent>
       </Card>
 
-      {/* ── Nhạc Nền Khu Vực (Background Music) Card ── */}
+      {/* ── Cấu Hình Nhạc Nền Khu Vực ── */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-lg">
             <Music className="w-5 h-5 text-primary" />
-            Nhạc Nền Khu Vực (Background Music)
+            Nhạc Nền Khu Vực
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label className="font-semibold">Tải Lên File MP3 Nhạc Nền</Label>
+              <Label className="font-semibold">Tải Lên File Nhạc Nền (MP3)</Label>
               <div className="flex items-center gap-2">
                 <Input
                   type="file"
@@ -298,7 +307,7 @@ const AreaInfoBlock = ({ areaId }: { areaId: string | undefined }) => {
 
             <div className="space-y-2">
               <Label htmlFor="area-bg-url" className="font-semibold">
-                Hoặc Nhập URL Nhạc Nền (MP3)
+                Hoặc Nhập Đường Dẫn Nhạc Nền (URL MP3)
               </Label>
               <Input
                 id="area-bg-url"
@@ -309,16 +318,33 @@ const AreaInfoBlock = ({ areaId }: { areaId: string | undefined }) => {
             </div>
           </div>
 
-          {bgMusicUrl && (
-            <div className="pt-2 border-t">
-              <Label className="text-xs font-semibold text-muted-foreground block mb-2">
-                Phát thử nhạc nền khu vực:
-              </Label>
+          {/* Hiển thị Trình Phát & Nút Xóa Nhạc Nền Hiện Tại */}
+          {bgMusicUrl ? (
+            <div className="pt-3 border-t space-y-3">
+              <div className="flex items-center justify-between">
+                <Label className="text-xs font-semibold text-muted-foreground">
+                  Nhạc nền hiện tại của khu vực:
+                </Label>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleDeleteBgMusic}
+                  className="h-8 text-xs text-destructive hover:text-destructive gap-1.5"
+                >
+                  <Trash2 className="w-4 h-4" /> Xóa nhạc nền hiện tại
+                </Button>
+              </div>
+
               <AudioPlayer
                 src={bgMusicUrl}
                 title={`Nhạc nền: ${area?.area_name}`}
                 autoPlay={false}
               />
+            </div>
+          ) : (
+            <div className="pt-2 border-t text-xs text-muted-foreground italic">
+              Khu vực chưa có nhạc nền riêng. Khi vào VR, hệ thống sẽ chỉ phát nhạc khi khu vực được cài đặt nhạc nền.
             </div>
           )}
         </CardContent>
