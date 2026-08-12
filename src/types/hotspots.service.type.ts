@@ -1,8 +1,39 @@
 import type { Asset } from "./asset.type";
 import type { Document as DocumentType } from "./document.type";
 
+export interface NhaCoCong {
+  id: string;
+  nha_cua_ai: string;
+  ten_liet_si: string;
+  ngay_sinh?: string;
+  ngay_mat?: string;
+  que_quan?: string;
+  tieu_su?: string;
+  latitude?: number;
+  longitude?: number;
+  images?: string[];
+}
+
+export interface TuyenDuong {
+  id: string;
+  name: string;
+  description?: string;
+  ngay_sinh?: string;
+  ngay_mat?: string;
+  que_quan?: string;
+  color?: string;
+  points: [number, number][];
+  images?: string[];
+}
+
+export interface HotspotMetadata {
+  ids?: string[];
+  audio_url?: string;
+  [key: string]: any;
+}
+
 export interface Hotspot {
-  id: string; // Add this for DataTable compatibility
+  id: string;
   hotspot_id: number;
   area_id: number | null;
   title: string | null;
@@ -15,5 +46,5 @@ export interface Hotspot {
   preview_image: string | null;
   click_panorama_id: string | null;
   created_at: string | null;
-  metadata: Record<string, any> | null;
+  metadata: HotspotMetadata | null;
 }

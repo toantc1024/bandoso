@@ -221,17 +221,22 @@ export const updateHotspot = async (
     console.log("Failed to add hotspot to chat: " + (error as Error).message);
   }
 
+  const mergedMetadata = {
+    ...(currentHotspot?.metadata || {}),
+    ...(hotspot.metadata || {}),
+    ids: newIds,
+  };
+
   const { data, error } = await supabase
     .from("hotspots")
     .update({
       ...hotspot,
-      metadata: {
-        ids: newIds,
-      },
+      metadata: mergedMetadata,
     })
     .eq("hotspot_id", hotspot_id)
     .select()
     .single();
+
 
   if (error) {
     throw new Error("Failed to update hotspot: " + (error as Error).message);

@@ -1,3 +1,12 @@
+import type { TuyenDuong, NhaCoCong } from "./hotspots.service.type";
+
+export interface AreaMetadata {
+  bg_music_url?: string;
+  nha_co_cong?: NhaCoCong[];
+  tuyen_duong?: TuyenDuong[];
+  [key: string]: any;
+}
+
 export interface Area {
   area_id: string;
   area_name: string;
@@ -7,4 +16,5 @@ export interface Area {
   chatbot_limit_request?: number;
   is_active?: boolean;
   description?: string;
+  metadata?: AreaMetadata | null;
 }

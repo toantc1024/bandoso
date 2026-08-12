@@ -8,9 +8,12 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { RotateCcw, Save, MapPin } from "lucide-react";
+import { RotateCcw, Save, MapPin, Music, Loader2 } from "lucide-react";
 import HotspotSelectionModal from "./HotspotSelectionModal";
 import { Spinner } from "../ui/shadcn-io/spinner";
+import AudioPlayer from "../ui/AudioPlayer";
+import { uploadFile, retrievePublicUrl } from "@/services/storage.service";
+import { BUCKET_NAME } from "@/constants/storage.constants";
 
 const AreaInfoBlock = ({ areaId }: { areaId: string | undefined }) => {
   const [area, setArea] = useState<Area | null>(null);
@@ -19,6 +22,10 @@ const AreaInfoBlock = ({ areaId }: { areaId: string | undefined }) => {
   const [isHotspotModalOpen, setIsHotspotModalOpen] = useState(false);
   const [selectedHotspot, setSelectedHotspot] = useState<Hotspot | null>(null);
   const [isLoadingHotspot, setIsLoadingHotspot] = useState(false);
+
+  // Nhạc nền Khu vực state
+  const [bgMusicUrl, setBgMusicUrl] = useState<string>("");
+  const [isUploadingBg, setIsUploadingBg] = useState(false);
 
   useEffect(() => {
     if (areaId) {
@@ -40,6 +47,7 @@ const AreaInfoBlock = ({ areaId }: { areaId: string | undefined }) => {
       const data = await getAreaById(areaId || "");
       setArea(data);
       setFormData(data);
+      setBgMusicUrl(data.metadata?.bg_music_url || "");
     } catch (error) {
       toast.error("Không thể tải thông tin khu vực");
       console.error("Error fetching area:", error);
@@ -68,15 +76,55 @@ const AreaInfoBlock = ({ areaId }: { areaId: string | undefined }) => {
     }));
   };
 
+  const handleFileUploadBgMusic = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !areaId) return;
+
+    setIsUploadingBg(true);
+    try {
+      const fileName = `area_${areaId}_bg_music_${Date.now()}.mp3`;
+      const uploadResult = await uploadFile(
+        file,
+        BUCKET_NAME,
+        `base/audio/area_${areaId}`,
+        fileName,
+        true
+      );
+
+      const publicUrl = retrievePublicUrl(
+        BUCKET_NAME,
+        `base/audio/area_${areaId}`,
+        uploadResult.normalizedFileName
+      );
+
+      setBgMusicUrl(publicUrl);
+      toast.success("Tải nhạc nền lên thành công!");
+    } catch (err: any) {
+      console.error("Error uploading background music:", err);
+      toast.error("Lỗi khi tải nhạc nền lên Supabase Storage");
+    } finally {
+      setIsUploadingBg(false);
+    }
+  };
+
   const handleUpdate = async () => {
     if (!areaId || !formData) return;
 
     try {
       setIsLoading(true);
-      const updatedArea = await updateArea(areaId, formData);
+      const updateData: Partial<Area> = {
+        ...formData,
+        metadata: {
+          ...(area?.metadata || {}),
+          ...(formData.metadata || {}),
+          bg_music_url: bgMusicUrl || undefined,
+        },
+      };
+
+      const updatedArea = await updateArea(areaId, updateData);
       setArea(updatedArea);
       setFormData(updatedArea);
-      toast.success("Cập nhật khu vực thành công");
+      toast.success("Cập nhật thông tin khu vực thành công");
     } catch (error) {
       toast.error("Không thể cập nhật khu vực");
       console.error("Error updating area:", error);
@@ -87,6 +135,7 @@ const AreaInfoBlock = ({ areaId }: { areaId: string | undefined }) => {
 
   const handleReset = () => {
     setFormData(area || {});
+    setBgMusicUrl(area?.metadata?.bg_music_url || "");
     toast.info("Đã đặt lại form về giá trị ban đầu");
   };
 
@@ -95,7 +144,6 @@ const AreaInfoBlock = ({ areaId }: { areaId: string | undefined }) => {
       ...prev,
       main_hotspot_id: hotspotId || null,
     }));
-    // Clear selected hotspot to trigger fresh fetch
     if (hotspotId) {
       setSelectedHotspot(null);
     }
@@ -126,13 +174,15 @@ const AreaInfoBlock = ({ areaId }: { areaId: string | undefined }) => {
     );
   }
 
-  const hasChanges = JSON.stringify(formData) !== JSON.stringify(area);
+  const hasChanges =
+    JSON.stringify(formData) !== JSON.stringify(area) ||
+    bgMusicUrl !== (area?.metadata?.bg_music_url || "");
 
   return (
-    <>
+    <div className="space-y-6">
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-          <CardTitle>Thông tin khu vực</CardTitle>
+          <CardTitle>Thông tin chung khu vực</CardTitle>
           <div className="flex gap-2">
             <Button
               size="sm"
@@ -220,6 +270,60 @@ const AreaInfoBlock = ({ areaId }: { areaId: string | undefined }) => {
         </CardContent>
       </Card>
 
+      {/* ── Nhạc Nền Khu Vực (Background Music) Card ── */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <Music className="w-5 h-5 text-primary" />
+            Nhạc Nền Khu Vực (Background Music)
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label className="font-semibold">Tải Lên File MP3 Nhạc Nền</Label>
+              <div className="flex items-center gap-2">
+                <Input
+                  type="file"
+                  accept="audio/mp3,audio/mpeg,audio/wav"
+                  onChange={handleFileUploadBgMusic}
+                  disabled={isUploadingBg}
+                  className="cursor-pointer"
+                />
+                {isUploadingBg && (
+                  <Loader2 className="w-4 h-4 animate-spin shrink-0 text-primary" />
+                )}
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="area-bg-url" className="font-semibold">
+                Hoặc Nhập URL Nhạc Nền (MP3)
+              </Label>
+              <Input
+                id="area-bg-url"
+                placeholder="https://..."
+                value={bgMusicUrl}
+                onChange={(e) => setBgMusicUrl(e.target.value)}
+              />
+            </div>
+          </div>
+
+          {bgMusicUrl && (
+            <div className="pt-2 border-t">
+              <Label className="text-xs font-semibold text-muted-foreground block mb-2">
+                Phát thử nhạc nền khu vực:
+              </Label>
+              <AudioPlayer
+                src={bgMusicUrl}
+                title={`Nhạc nền: ${area?.area_name}`}
+                autoPlay={false}
+              />
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
       {/* Hotspot Selection Modal */}
       <HotspotSelectionModal
         isOpen={isHotspotModalOpen}
@@ -228,7 +332,7 @@ const AreaInfoBlock = ({ areaId }: { areaId: string | undefined }) => {
         areaId={area?.area_id || ""}
         currentHotspotId={formData.main_hotspot_id || ""}
       />
-    </>
+    </div>
   );
 };
 

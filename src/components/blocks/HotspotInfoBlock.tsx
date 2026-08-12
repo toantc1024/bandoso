@@ -25,9 +25,11 @@ import {
 } from "@/constants/storage.constants";
 import type { Hotspot } from "@/types/hotspots.service.type";
 import { toast } from "sonner";
-import { Loader2, MapPin, Camera, Info, TrashIcon } from "lucide-react";
+import { Loader2, MapPin, Camera, Info, TrashIcon, Volume2, Wand2 } from "lucide-react";
 import { ImageZoom } from "../ui/shadcn-io/image-zoom";
 import LatLonPicker from "../ui/lat-lon-picker";
+import AudioPlayer from "../ui/AudioPlayer";
+import { generateTTSAudio, getTTSVoices, DEFAULT_VOICES, type TTSVoice } from "@/services/tts.service";
 
 interface HotspotInfoBlockProps {
   currentHotspot: Partial<Hotspot>;
@@ -60,6 +62,18 @@ const HotspotInfoBlock: React.FC<HotspotInfoBlockProps> = ({
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  // TTS Audio state
+  const [audioUrl, setAudioUrl] = useState<string>("");
+  const [selectedVoice, setSelectedVoice] = useState<string>("vi-VN-HoaiMyNeural");
+  const [ttsText, setTtsText] = useState<string>("");
+  const [isGeneratingTTS, setIsGeneratingTTS] = useState<boolean>(false);
+  const [voices, setVoices] = useState<TTSVoice[]>(DEFAULT_VOICES);
+
+  // Fetch TTS voices on mount
+  useEffect(() => {
+    getTTSVoices().then(setVoices).catch(console.error);
+  }, []);
+
   // Update form when currentHotspot changes
   useEffect(() => {
     setFormData({
@@ -71,7 +85,30 @@ const HotspotInfoBlock: React.FC<HotspotInfoBlockProps> = ({
       longitude: currentHotspot.geolocation?.lon?.toString() || "",
       click_panorama_id: currentHotspot.click_panorama_id || "",
     });
+    setAudioUrl(currentHotspot.metadata?.audio_url || "");
+    setTtsText(currentHotspot.description || currentHotspot.title || "");
   }, [currentHotspot]);
+
+  const handleGenerateTTS = async () => {
+    const textToSpeak = ttsText.trim() || formData.description.trim() || formData.title.trim();
+    if (!textToSpeak) {
+      toast.error("Vui lòng nhập văn bản hoặc mô tả để tạo file âm thanh");
+      return;
+    }
+
+    setIsGeneratingTTS(true);
+    try {
+      const res = await generateTTSAudio(textToSpeak, selectedVoice);
+      setAudioUrl(res.audio_url);
+      toast.success("Tạo file âm thanh thuyết minh thành công!");
+    } catch (err: any) {
+      console.error("TTS generation error:", err);
+      toast.error("Lỗi khi tạo audio: " + (err.response?.data?.detail || err.message));
+    } finally {
+      setIsGeneratingTTS(false);
+    }
+  };
+
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -156,7 +193,12 @@ const HotspotInfoBlock: React.FC<HotspotInfoBlockProps> = ({
               }
             : undefined,
         click_panorama_id: formData.click_panorama_id.trim() || undefined,
+        metadata: {
+          ...(currentHotspot.metadata || {}),
+          audio_url: audioUrl || undefined,
+        },
       };
+
 
       setLoadingStep(0);
 
@@ -393,43 +435,62 @@ const HotspotInfoBlock: React.FC<HotspotInfoBlockProps> = ({
                 onChange={handleInputChange}
                 disabled={isLoading}
               />
-              {errors.description && (
-                <p className="text-sm text-red-600">{errors.description}</p>
-              )}
             </div>
 
-            {/* Panorama ID section */}
-            <div className="grid gap-3 pt-4">
-              <Label htmlFor="click_panorama_id">
-                Panorama ID chính của địa điểm
-              </Label>
-              <div className="flex space-x-2">
-                <Input
-                  id="click_panorama_id"
-                  name="click_panorama_id"
-                  placeholder="ID của ảnh 360 sẽ mở khi ấn vào địa điểm này"
-                  value={formData.click_panorama_id}
-                  onChange={handleInputChange}
-                  disabled={isLoading}
-                />
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setShowPanoramaModal(true)}
-                  disabled={isLoading || !currentHotspot.hotspot_id}
-                >
-                  Chọn Panorama chính
-                </Button>
+            {/* ── Audio Thuyết Minh Section ── */}
+            <div className="border rounded-2xl p-5 space-y-4 bg-muted/20">
+              <div className="flex items-center space-x-2 border-b pb-3">
+                <Volume2 className="h-5 w-5 text-primary" />
+                <h3 className="text-lg font-semibold">Audio Thuyết Minh Địa Điểm</h3>
               </div>
-              {errors.click_panorama_id && (
-                <p className="text-sm text-red-600">
-                  {errors.click_panorama_id}
-                </p>
-              )}
-              {formData.click_panorama_id && (
-                <p className="text-sm text-green-600">
-                  ✓ Đã chọn panorama: {formData.click_panorama_id}
-                </p>
+
+              <div className="space-y-2">
+                <Label htmlFor="voice-select" className="font-semibold">Chọn Giọng Đọc</Label>
+                <select
+                  id="voice-select"
+                  value={selectedVoice}
+                  onChange={(e) => setSelectedVoice(e.target.value)}
+                  className="w-full h-10 px-3 py-2 bg-background border border-input rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                >
+                  {voices.map((v) => (
+                    <option key={v.id} value={v.id}>
+                      {v.name} ({v.language})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="tts-text" className="font-semibold">Nội Dung Thuyết Minh Cho Địa Điểm</Label>
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <Textarea
+                    id="tts-text"
+                    placeholder="Văn bản thuyết minh địa điểm..."
+                    value={ttsText}
+                    onChange={(e) => setTtsText(e.target.value)}
+                    rows={3}
+                  />
+                  <Button
+                    type="button"
+                    onClick={handleGenerateTTS}
+                    disabled={isGeneratingTTS}
+                    className="shrink-0 gap-2 h-auto py-3 sm:py-0"
+                  >
+                    {isGeneratingTTS ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Wand2 className="w-4 h-4 text-amber-300" />
+                    )}
+                    Tạo Thuyết Minh MP3
+                  </Button>
+                </div>
+              </div>
+
+              {audioUrl && (
+                <div className="pt-2 border-t">
+                  <Label className="text-xs font-semibold text-muted-foreground block mb-2">Âm thanh thuyết minh đã tạo:</Label>
+                  <AudioPlayer src={audioUrl} title={formData.title || "Thuyết minh địa điểm"} />
+                </div>
               )}
             </div>
 
@@ -711,3 +772,4 @@ const HotspotInfoBlock: React.FC<HotspotInfoBlockProps> = ({
 };
 
 export default HotspotInfoBlock;
+
