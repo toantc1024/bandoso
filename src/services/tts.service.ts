@@ -24,14 +24,30 @@ export const generateTTSAudio = async (
   text: string,
   voice: string = "vi-VN-HoaiMyNeural"
 ): Promise<{ audio_url: string; text: string; voice: string }> => {
-  try {
-    const api = getApi();
-    const response = await api.post("/tts/generate", { text, voice });
-    return response.data;
-  } catch (err) {
-    console.warn("Primary TTS endpoint failed/timed out, attempting local backend http://localhost:8000/tts/generate fallback...");
-    // Fallback to local server if remote URL fails or times out
-    const fallbackResponse = await axios.post("http://localhost:8000/tts/generate", { text, voice }, { timeout: 15000 });
-    return fallbackResponse.data;
+  const candidateUrls = [
+    undefined, // Use default getApi() baseURL
+    "https://bandoso-api-wild-lake-309.fly.dev/tts/generate",
+    "https://bandoso-api.fly.dev/tts/generate",
+    "http://localhost:8000/tts/generate"
+  ];
+
+  let lastError: any = null;
+
+  for (const url of candidateUrls) {
+    try {
+      if (!url) {
+        const api = getApi();
+        const response = await api.post("/tts/generate", { text, voice }, { timeout: 20000 });
+        return response.data;
+      } else {
+        const response = await axios.post(url, { text, voice }, { timeout: 20000 });
+        return response.data;
+      }
+    } catch (err: any) {
+      console.warn(`TTS endpoint [${url || "primary"}] failed:`, err.message);
+      lastError = err;
+    }
   }
+
+  throw lastError || new Error("Không thể kết nối đến máy chủ TTS");
 };
