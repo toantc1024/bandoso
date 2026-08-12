@@ -72,7 +72,15 @@ export const updateArea = async (
   area_id: string,
   areaData: Partial<Area>
 ): Promise<Area> => {
-  const { metadata, ...dbAreaFields } = areaData;
+  // Only send columns that actually exist in the areas table
+  const { metadata, area_id: _id, created_at, ...rest } = areaData;
+  const dbAreaFields: Record<string, any> = {};
+  const VALID_AREA_COLUMNS = ["area_name", "main_hotspot_id", "domain", "chatbot_limit_request"];
+  for (const key of VALID_AREA_COLUMNS) {
+    if (key in rest) {
+      dbAreaFields[key] = (rest as any)[key];
+    }
+  }
 
   const { data, error } = await supabase
     .from("areas")
@@ -86,14 +94,27 @@ export const updateArea = async (
   }
 
   // Store metadata inside main hotspot's metadata column
+  // Merge with existing hotspot metadata to preserve chat document ids
   if (metadata !== undefined && data.main_hotspot_id) {
+    // First fetch existing hotspot metadata
+    const { data: existingHotspot } = await supabase
+      .from("hotspots")
+      .select("metadata")
+      .eq("hotspot_id", data.main_hotspot_id)
+      .single();
+
+    const mergedMetadata = {
+      ...(existingHotspot?.metadata || {}),
+      ...metadata,
+    };
+
     const { error: metaError } = await supabase
       .from("hotspots")
-      .update({ metadata })
+      .update({ metadata: mergedMetadata })
       .eq("hotspot_id", data.main_hotspot_id);
 
     if (!metaError) {
-      data.metadata = metadata;
+      data.metadata = mergedMetadata;
     } else {
       console.warn("Failed to update main hotspot metadata:", metaError.message);
     }

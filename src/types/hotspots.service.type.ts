@@ -28,7 +28,7 @@ export interface TuyenDuong {
 
 export interface HotspotMetadata {
   ids?: string[];
-  audio_url?: string;
+  audio_url?: string | null;
   [key: string]: any;
 }
 

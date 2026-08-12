@@ -171,7 +171,8 @@ const HotspotInfoBlock: React.FC<HotspotInfoBlockProps> = ({
         (currentHotspot.geolocation?.lat?.toString() || "") ||
       formData.longitude !==
         (currentHotspot.geolocation?.lon?.toString() || "") ||
-      previewImageFile !== null;
+      previewImageFile !== null ||
+      audioUrl !== (currentHotspot.metadata?.audio_url || "");
     if (!hasChanges) {
       toast.info("Không có thay đổi nào để cập nhật");
       return;
@@ -195,7 +196,7 @@ const HotspotInfoBlock: React.FC<HotspotInfoBlockProps> = ({
         click_panorama_id: formData.click_panorama_id.trim() || undefined,
         metadata: {
           ...(currentHotspot.metadata || {}),
-          audio_url: audioUrl || undefined,
+          audio_url: audioUrl.trim() ? audioUrl.trim() : null,
         },
       };
 
@@ -488,7 +489,21 @@ const HotspotInfoBlock: React.FC<HotspotInfoBlockProps> = ({
 
               {audioUrl && (
                 <div className="pt-2 border-t">
-                  <Label className="text-xs font-semibold text-muted-foreground block mb-2">Âm thanh thuyết minh đã tạo:</Label>
+                  <div className="flex items-center justify-between mb-2">
+                    <Label className="text-xs font-semibold text-muted-foreground">Âm thanh thuyết minh đã tạo:</Label>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        setAudioUrl("");
+                        toast.info("Đã xóa file âm thanh. Hãy nhấn 'Cập nhật' để lưu thay đổi.");
+                      }}
+                      className="text-xs text-red-500 hover:text-red-600 hover:bg-red-50 h-7 px-2"
+                    >
+                      Xóa file âm thanh
+                    </Button>
+                  </div>
                   <AudioPlayer src={audioUrl} title={formData.title || "Thuyết minh địa điểm"} />
                 </div>
               )}
