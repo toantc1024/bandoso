@@ -31,14 +31,7 @@ createRoot(document.getElementById("root")!).render(
             </RootOnlyRoute>
           }
         />
-        <Route
-          path="khu-vuc"
-          element={
-            <RootOnlyRoute>
-              <ManageAreaPage />
-            </RootOnlyRoute>
-          }
-        />
+        <Route path="khu-vuc" element={<ManageAreaPage />} />
         <Route path="khu-vuc/:areaId" element={<AreaDetailPage />} />
         <Route path="tro-ly-ao" element={<ManageChatbot />} />
         <Route path="dia-diem" element={<ManageHotspotsPage />} />
