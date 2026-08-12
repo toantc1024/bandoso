@@ -20,6 +20,9 @@ import {
 import { toast } from "sonner";
 import { Globe, Pencil, Trash2 } from "lucide-react";
 import type { Area } from "@/types/areas.service.type";
+import { useAuthStore } from "@/stores/auth.store";
+import { getAreasByAccountId } from "@/services/account_areas.service";
+import { ADMIN_ROLE } from "@/constants/role.constants";
 import type {
   Column,
   RowAction,
@@ -91,7 +94,15 @@ const ManageAreaPage = () => {
   // Fetch all area names for filter dropdown (no pagination)
   const fetchAllAreaNames = async () => {
     try {
-      const result = await getAreas({ pagination: { page: 1, limit: 9999 } });
+      const { user } = useAuthStore.getState();
+      let filters: any = undefined;
+      // For non-root admins: only show assigned areas in filter dropdown
+      if (user?.role === ADMIN_ROLE && user?.account_id) {
+        const areaIds = await getAreasByAccountId(user.account_id);
+        if (areaIds.length === 0) { setAllAreaNames([]); return; }
+        filters = { conditions: [{ column: "area_id" as const, operator: "in" as const, value: areaIds }] };
+      }
+      const result = await getAreas({ pagination: { page: 1, limit: 9999 }, filters });
       const names = result.data.map((a) => ({ label: a.area_name, value: a.area_name }));
       setAllAreaNames(names);
     } catch (err) {
@@ -106,6 +117,7 @@ const ManageAreaPage = () => {
   const fetchAreas = async () => {
     try {
       setLoading(true);
+      const { user } = useAuthStore.getState();
       const searchColumns: Column<Area>[] = [
         { key: "area_name", label: "Tên khu vực", filterable: true },
       ];
@@ -115,6 +127,21 @@ const ManageAreaPage = () => {
         searchColumns,
         { exactSearch: true }
       );
+
+      // For non-root admins: only show assigned areas
+      if (user?.role === ADMIN_ROLE && user?.account_id) {
+        const areaIds = await getAreasByAccountId(user.account_id);
+        if (areaIds.length === 0) {
+          setAreas([]);
+          setPagination({ page: 1, pageSize: pagination.pageSize, total: 0, totalPages: 0 });
+          setLoading(false);
+          return;
+        }
+        apiFilters.conditions = [
+          ...(apiFilters.conditions || []),
+          { column: "area_id" as const, operator: "in" as const, value: areaIds },
+        ];
+      }
 
       const result = await getAreas({
         pagination: {
