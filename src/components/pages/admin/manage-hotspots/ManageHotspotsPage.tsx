@@ -17,6 +17,7 @@ import {
   bulkDeleteHotspots,
 } from "@/services/hotspots.service";
 import { getAreasByAccountId } from "@/services/account_areas.service";
+import { getAreas } from "@/services/areas.service";
 import { HotspotModal } from "../../../blocks/HotspotModalBlock";
 import { toast } from "sonner";
 import { useAuthStore } from "@/stores/auth.store";
@@ -26,6 +27,7 @@ const ManageHotspotsPage = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [hotspots, setHotspots] = useState<Hotspot[]>([]);
+  const [allAreas, setAllAreas] = useState<{ label: string; value: string }[]>([]);
   const [loading, setLoading] = useState(false);
   const [createModalOpen, setCreateModalOpen] = useState(false);
 
@@ -72,6 +74,18 @@ const ManageHotspotsPage = () => {
     setSearchParams(params, { replace: true });
   }, [filters, sortConfig, pagination.page, pagination.pageSize]);
 
+  // Fetch all areas for filter dropdown
+  useEffect(() => {
+    (async () => {
+      try {
+        const result = await getAreas({ pagination: { page: 1, limit: 9999 } });
+        setAllAreas(result.data.map((a) => ({ label: a.area_name, value: a.area_id })));
+      } catch (err) {
+        console.error("Error fetching areas:", err);
+      }
+    })();
+  }, []);
+
   const columns: Column<Hotspot>[] = [
     {
       key: "hotspot_id",
@@ -104,6 +118,7 @@ const ManageHotspotsPage = () => {
       label: "Khu vực",
       sortable: true,
       filterable: true,
+      filterOptions: allAreas,
       render: (_, row) => {
         // @ts-ignore - area is joined from areas table
         return row.area?.[0]?.area_name || "Chưa có khu vực";
