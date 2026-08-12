@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { getAreaById, updateArea } from "@/services/areas.service";
 import type { Area } from "@/types/areas.service.type";
 import type { NhaCoCong } from "@/types/hotspots.service.type";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";

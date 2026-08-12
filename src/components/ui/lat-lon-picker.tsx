@@ -257,6 +257,7 @@ interface LatLonPickerProps {
 const LatLonPicker: React.FC<LatLonPickerProps> = ({
   initialCenter = [106.741961, 10.849256], // Default to Ho Chi Minh City coordinates
   initialZoom = 14,
+  initialMarker,
   onLocationSelect,
   className = "",
 }) => {
