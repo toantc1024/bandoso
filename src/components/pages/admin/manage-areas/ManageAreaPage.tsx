@@ -63,7 +63,8 @@ const ManageAreaPage = () => {
       const apiFilters = convertTableFiltersToApiFilters<Area>(
         filters,
         sortConfig,
-        searchColumns
+        searchColumns,
+        { exactSearch: true }
       );
 
       // Debug log to see what filters are being sent

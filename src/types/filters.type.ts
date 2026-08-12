@@ -26,5 +26,6 @@ export interface Filters<T = any> {
   search?: {
     columns: (keyof T)[];
     query: string;
+    exact?: boolean;
   };
 }

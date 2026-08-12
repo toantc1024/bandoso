@@ -6,12 +6,14 @@ import type { Filters, SortOption } from "@/types/filters.type";
  * @param tableFilters - The filters from the table component
  * @param sortConfig - The sort configuration from the table component
  * @param columns - The column definitions to help with search column resolution
+ * @param options - Additional options like exact match
  * @returns API-compatible filters object
  */
 export function convertTableFiltersToApiFilters<T>(
   tableFilters: TableFilters,
   sortConfig?: SortConfig | null,
-  columns?: Column<T>[]
+  columns?: Column<T>[],
+  options?: { exactSearch?: boolean }
 ): Filters<T> {
   const apiFilters: Filters<T> = {};
 
@@ -32,6 +34,7 @@ export function convertTableFiltersToApiFilters<T>(
       apiFilters.search = {
         columns: [searchColumn as keyof T],
         query: tableFilters.search.trim(),
+        exact: options?.exactSearch ?? false,
       };
     }
   }

@@ -50,10 +50,19 @@ export function applyFilters<T>(query: any, filters?: Filters<T>) {
 
   // Apply search across multiple columns
   if (filters.search && filters.search.query) {
-    const searchConditions = filters.search.columns
-      .map((column) => `${column as string}.ilike.%${filters.search!.query}%`)
-      .join(",");
-    query = query.or(searchConditions);
+    if (filters.search.exact) {
+      // Exact match: use eq for each column
+      const searchConditions = filters.search.columns
+        .map((column) => `${column as string}.eq.${filters.search!.query}`)
+        .join(",");
+      query = query.or(searchConditions);
+    } else {
+      // Partial match (default): use ilike with wildcards
+      const searchConditions = filters.search.columns
+        .map((column) => `${column as string}.ilike.%${filters.search!.query}%`)
+        .join(",");
+      query = query.or(searchConditions);
+    }
   }
 
   // Apply sorting
