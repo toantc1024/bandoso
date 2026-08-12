@@ -40,13 +40,26 @@ export const getAreaById = async (area_id: string): Promise<Area> => {
   if (error) {
     throw new Error("Failed to get area: " + error.message);
   }
+
+  // Fetch metadata from main hotspot if exists
+  if (data.main_hotspot_id) {
+    const { data: mainHotspot } = await supabase
+      .from("hotspots")
+      .select("metadata")
+      .eq("hotspot_id", data.main_hotspot_id)
+      .single();
+    if (mainHotspot?.metadata) {
+      data.metadata = mainHotspot.metadata;
+    }
+  }
   return data;
 };
 
-export const createArea = async (area: Partial<Area>): Promise<Area> => {
+export const createArea = async (areaData: Partial<Area>): Promise<Area> => {
+  const { metadata, ...dbFields } = areaData;
   const { data, error } = await supabase
     .from("areas")
-    .insert(area)
+    .insert(dbFields)
     .select()
     .single();
   if (error) {
@@ -57,30 +70,40 @@ export const createArea = async (area: Partial<Area>): Promise<Area> => {
 
 export const updateArea = async (
   area_id: string,
-  area: Partial<Area>
+  areaData: Partial<Area>
 ): Promise<Area> => {
+  const { metadata, ...dbAreaFields } = areaData;
+
   const { data, error } = await supabase
     .from("areas")
-    .update(area)
+    .update(dbAreaFields)
     .eq("area_id", area_id)
     .select()
     .single();
+
   if (error) {
     throw new Error("Failed to update area: " + error.message);
   }
+
+  // Store metadata inside main hotspot's metadata column
+  if (metadata !== undefined && data.main_hotspot_id) {
+    const { error: metaError } = await supabase
+      .from("hotspots")
+      .update({ metadata })
+      .eq("hotspot_id", data.main_hotspot_id);
+
+    if (!metaError) {
+      data.metadata = metadata;
+    } else {
+      console.warn("Failed to update main hotspot metadata:", metaError.message);
+    }
+  }
+
   return data;
 };
 
 export const getArea = async (area_id: string): Promise<Area> => {
-  const { data, error } = await supabase
-    .from("areas")
-    .select("*")
-    .eq("area_id", area_id)
-    .single();
-  if (error) {
-    throw new Error("Failed to get area: " + error.message);
-  }
-  return data;
+  return getAreaById(area_id);
 };
 
 export const deleteArea = async (area_id: string): Promise<void> => {

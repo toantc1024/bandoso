@@ -25,6 +25,7 @@ const AreaInfoBlock = ({ areaId }: { areaId: string | undefined }) => {
 
   // Nhạc nền Khu vực state
   const [bgMusicUrl, setBgMusicUrl] = useState<string>("");
+  const [pendingFile, setPendingFile] = useState<File | null>(null);
   const [isUploadingBg, setIsUploadingBg] = useState(false);
 
   useEffect(() => {
@@ -48,6 +49,7 @@ const AreaInfoBlock = ({ areaId }: { areaId: string | undefined }) => {
       setArea(data);
       setFormData(data);
       setBgMusicUrl(data.metadata?.bg_music_url || "");
+      setPendingFile(null);
     } catch (error) {
       toast.error("Không thể tải thông tin khu vực");
       console.error("Error fetching area:", error);
@@ -76,39 +78,20 @@ const AreaInfoBlock = ({ areaId }: { areaId: string | undefined }) => {
     }));
   };
 
-  const handleFileUploadBgMusic = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Select local file without uploading immediately until user clicks "Cập nhật"
+  const handleFileSelectBgMusic = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file || !areaId) return;
+    if (!file) return;
 
-    setIsUploadingBg(true);
-    try {
-      const fileName = `area_${areaId}_bg_music_${Date.now()}.mp3`;
-      const uploadResult = await uploadFile(
-        file,
-        BUCKET_NAME,
-        `base/audio/area_${areaId}`,
-        fileName,
-        true
-      );
-
-      const publicUrl = retrievePublicUrl(
-        BUCKET_NAME,
-        `base/audio/area_${areaId}`,
-        uploadResult.normalizedFileName
-      );
-
-      setBgMusicUrl(publicUrl);
-      toast.success("Tải nhạc nền lên thành công!");
-    } catch (err: any) {
-      console.error("Error uploading background music:", err);
-      toast.error("Lỗi khi tải nhạc nền lên Supabase Storage");
-    } finally {
-      setIsUploadingBg(false);
-    }
+    setPendingFile(file);
+    const localPreviewUrl = URL.createObjectURL(file);
+    setBgMusicUrl(localPreviewUrl);
+    toast.info("Đã chọn file nhạc nền. Hãy nhấn 'Cập nhật' để lưu lại.");
   };
 
   const handleDeleteBgMusic = () => {
     setBgMusicUrl("");
+    setPendingFile(null);
     toast.success("Đã xóa nhạc nền hiện tại. Hãy nhấn 'Cập nhật' để lưu thay đổi.");
   };
 
@@ -117,11 +100,33 @@ const AreaInfoBlock = ({ areaId }: { areaId: string | undefined }) => {
 
     try {
       setIsLoading(true);
+      let finalBgUrl = bgMusicUrl;
+
+      // Upload pending file ONLY when user clicks "Cập nhật"
+      if (pendingFile) {
+        setIsUploadingBg(true);
+        const fileName = `area_${areaId}_bg_music_${Date.now()}.mp3`;
+        const uploadResult = await uploadFile(
+          pendingFile,
+          BUCKET_NAME,
+          `base/audio/area_${areaId}`,
+          fileName,
+          true
+        );
+
+        finalBgUrl = retrievePublicUrl(
+          BUCKET_NAME,
+          `base/audio/area_${areaId}`,
+          uploadResult.normalizedFileName
+        );
+        setIsUploadingBg(false);
+      }
+
       const currentMetadata = area?.metadata || {};
       const newMetadata = {
         ...currentMetadata,
         ...(formData.metadata || {}),
-        bg_music_url: bgMusicUrl.trim() ? bgMusicUrl.trim() : null,
+        bg_music_url: finalBgUrl.trim() ? finalBgUrl.trim() : null,
       };
 
       const updateData: Partial<Area> = {
@@ -133,18 +138,21 @@ const AreaInfoBlock = ({ areaId }: { areaId: string | undefined }) => {
       setArea(updatedArea);
       setFormData(updatedArea);
       setBgMusicUrl(updatedArea.metadata?.bg_music_url || "");
+      setPendingFile(null);
       toast.success("Cập nhật thông tin khu vực thành công!");
     } catch (error) {
       toast.error("Không thể cập nhật khu vực");
       console.error("Error updating area:", error);
     } finally {
       setIsLoading(false);
+      setIsUploadingBg(false);
     }
   };
 
   const handleReset = () => {
     setFormData(area || {});
     setBgMusicUrl(area?.metadata?.bg_music_url || "");
+    setPendingFile(null);
     toast.info("Đã đặt lại thông tin về ban đầu");
   };
 
@@ -185,7 +193,8 @@ const AreaInfoBlock = ({ areaId }: { areaId: string | undefined }) => {
 
   const hasChanges =
     JSON.stringify(formData) !== JSON.stringify(area) ||
-    bgMusicUrl !== (area?.metadata?.bg_music_url || "");
+    bgMusicUrl !== (area?.metadata?.bg_music_url || "") ||
+    pendingFile !== null;
 
   return (
     <div className="space-y-6">
@@ -208,7 +217,7 @@ const AreaInfoBlock = ({ areaId }: { areaId: string | undefined }) => {
               disabled={isLoading || !hasChanges}
             >
               <Save className="h-4 w-4 mr-1" />
-              {isLoading ? "Đang cập nhật..." : "Cập nhật"}
+              {isLoading || isUploadingBg ? "Đang cập nhật..." : "Cập nhật"}
             </Button>
           </div>
         </CardHeader>
@@ -295,7 +304,7 @@ const AreaInfoBlock = ({ areaId }: { areaId: string | undefined }) => {
                 <Input
                   type="file"
                   accept="audio/mp3,audio/mpeg,audio/wav"
-                  onChange={handleFileUploadBgMusic}
+                  onChange={handleFileSelectBgMusic}
                   disabled={isUploadingBg}
                   className="cursor-pointer"
                 />
@@ -313,7 +322,10 @@ const AreaInfoBlock = ({ areaId }: { areaId: string | undefined }) => {
                 id="area-bg-url"
                 placeholder="https://..."
                 value={bgMusicUrl}
-                onChange={(e) => setBgMusicUrl(e.target.value)}
+                onChange={(e) => {
+                  setBgMusicUrl(e.target.value);
+                  setPendingFile(null);
+                }}
               />
             </div>
           </div>
@@ -323,7 +335,7 @@ const AreaInfoBlock = ({ areaId }: { areaId: string | undefined }) => {
             <div className="pt-3 border-t space-y-3">
               <div className="flex items-center justify-between">
                 <Label className="text-xs font-semibold text-muted-foreground">
-                  Nhạc nền hiện tại của khu vực:
+                  {pendingFile ? "Nhạc nền đã chọn (chưa lưu):" : "Nhạc nền hiện tại của khu vực:"}
                 </Label>
                 <Button
                   type="button"
@@ -332,7 +344,7 @@ const AreaInfoBlock = ({ areaId }: { areaId: string | undefined }) => {
                   onClick={handleDeleteBgMusic}
                   className="h-8 text-xs text-destructive hover:text-destructive gap-1.5"
                 >
-                  <Trash2 className="w-4 h-4" /> Xóa nhạc nền hiện tại
+                  <Trash2 className="w-4 h-4" /> Xóa nhạc nền
                 </Button>
               </div>
 
