@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { DataTable } from "@/components/ui/data-table";
 import { Pencil, Trash2 } from "lucide-react";
 import type {
@@ -24,20 +24,53 @@ import { ADMIN_ROLE } from "@/constants/role.constants";
 
 const ManageHotspotsPage = () => {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [hotspots, setHotspots] = useState<Hotspot[]>([]);
   const [loading, setLoading] = useState(false);
-  const [pagination, setPagination] = useState<PaginationInfo>({
-    page: 1,
-    pageSize: 10,
+  const [createModalOpen, setCreateModalOpen] = useState(false);
+
+  // Restore filters from URL params
+  const [pagination, setPagination] = useState<PaginationInfo>(() => ({
+    page: Number(searchParams.get("page")) || 1,
+    pageSize: Number(searchParams.get("pageSize")) || 10,
     total: 0,
     totalPages: 0,
+  }));
+  const [filters, setFilters] = useState<TableFilters>(() => {
+    const saved: TableFilters = {};
+    const search = searchParams.get("search");
+    const searchColumn = searchParams.get("searchColumn");
+    const columnFilters = searchParams.get("columnFilters");
+    if (search) saved.search = search;
+    if (searchColumn) saved.searchColumn = searchColumn;
+    if (columnFilters) {
+      try { saved.columnFilters = JSON.parse(columnFilters); } catch {}
+    }
+    return saved;
   });
-  const [filters, setFilters] = useState<TableFilters>({});
-  const [sortConfig, setSortConfig] = useState<SortConfig | null>(null);
-  const [createModalOpen, setCreateModalOpen] = useState(false);
-  // const [editModalOpen, setEditModalOpen] = useState(false);
-  // const [viewModalOpen, setViewModalOpen] = useState(false);
-  // const [selectedHotspot, setSelectedHotspot] = useState<Hotspot | null>(null);
+  const [sortConfig, setSortConfig] = useState<SortConfig | null>(() => {
+    const sortKey = searchParams.get("sortKey");
+    const sortDir = searchParams.get("sortDir") as "asc" | "desc" | null;
+    if (sortKey && sortDir) return { key: sortKey, direction: sortDir };
+    return null;
+  });
+
+  // Persist filters to URL params
+  useEffect(() => {
+    const params = new URLSearchParams();
+    if (pagination.page > 1) params.set("page", String(pagination.page));
+    if (pagination.pageSize !== 10) params.set("pageSize", String(pagination.pageSize));
+    if (filters.search) params.set("search", filters.search);
+    if (filters.searchColumn) params.set("searchColumn", filters.searchColumn);
+    if (filters.columnFilters && Object.keys(filters.columnFilters).length > 0) {
+      params.set("columnFilters", JSON.stringify(filters.columnFilters));
+    }
+    if (sortConfig) {
+      params.set("sortKey", sortConfig.key);
+      params.set("sortDir", sortConfig.direction);
+    }
+    setSearchParams(params, { replace: true });
+  }, [filters, sortConfig, pagination.page, pagination.pageSize]);
 
   const columns: Column<Hotspot>[] = [
     {
