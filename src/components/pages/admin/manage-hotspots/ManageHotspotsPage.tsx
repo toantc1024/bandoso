@@ -152,11 +152,12 @@ const ManageHotspotsPage = () => {
       }
 
       // Column filters (from funnel dropdowns)
+      console.log("[HotspotFilter] columnFilters:", filters.columnFilters, "allAreas count:", allAreas.length);
       const conditions: any[] = [];
       if (filters.columnFilters) {
         for (const [columnKey, filterValue] of Object.entries(filters.columnFilters)) {
           if (columnKey === "area_id" && filterValue) {
-            // Resolve area_name → area_id (database column is numeric/string FK)
+            // Resolve area_name → area_id
             const match = allAreas.find((a) => a.value === filterValue);
             if (match) {
               conditions.push({
@@ -173,6 +174,10 @@ const ManageHotspotsPage = () => {
             });
           }
         }
+      }
+      // Assign column filter conditions to apiFilters
+      if (conditions.length > 0) {
+        apiFilters.conditions = conditions;
       }
 
       // Check if user is admin and needs area filtering
@@ -208,6 +213,7 @@ const ManageHotspotsPage = () => {
       }
 
       // Fetch hotspots with appropriate filters
+      console.log("[HotspotFilter] apiFilters:", JSON.stringify(apiFilters, null, 2));
       const result = await getHotspots({
         filters: apiFilters,
         pagination: {
@@ -346,7 +352,7 @@ const ManageHotspotsPage = () => {
 
   useEffect(() => {
     fetchHotspots();
-  }, [pagination.page, pagination.pageSize, filters, sortConfig]);
+  }, [pagination.page, pagination.pageSize, filters, sortConfig, allAreas.length]);
 
   return (
     <div className="space-y-0">
