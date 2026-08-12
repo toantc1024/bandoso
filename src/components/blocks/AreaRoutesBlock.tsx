@@ -325,7 +325,7 @@ export const AreaRoutesBlock: React.FC<AreaRoutesBlockProps> = ({ areaId }) => {
                           <div className="min-w-0">
                             <div className="font-semibold text-sm truncate">{r.name}</div>
                             <div className="text-xs text-muted-foreground truncate">
-                              {r.points.length} điểm • {r.description || "Không mô tả"}
+                              {r.points.length} điểm • {r.description ? r.description.replace(/<[^>]*>?/gm, '') : "Không mô tả"}
                             </div>
                           </div>
                         </div>

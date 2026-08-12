@@ -326,6 +326,12 @@ const LatLonPicker: React.FC<LatLonPickerProps> = ({
 
       mapRef.current = map;
 
+      map.on("load", () => {
+        if (initialMarker && initialMarker.length === 2 && !isNaN(initialMarker[0]) && !isNaN(initialMarker[1])) {
+          addMarker(initialMarker);
+        }
+      });
+
       // Add click handler for location picking (single click only)
       map.on("click", async (e: maplibregl.MapMouseEvent) => {
         console.log(

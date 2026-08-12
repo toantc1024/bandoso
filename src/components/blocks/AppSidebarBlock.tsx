@@ -22,7 +22,7 @@ import { useAuthStore } from "@/stores/auth.store";
 import { ROOT_ROLE } from "@/constants/role.constants";
 
 // Menu items based on user role
-const getMenuItems = (userRole: "root" | "admin") => {
+const getMenuItems = (userRole?: string) => {
   const dashboardItem = {
     title: "Tổng quan",
     value: "tong-quan",
@@ -61,10 +61,12 @@ const getMenuItems = (userRole: "root" | "admin") => {
     icon: MapIcon,
   };
 
-  const allItems =
-    userRole === ROOT_ROLE
-      ? [dashboardItem, ...rootOnlyItems, areaItem, ...commonItems]
-      : [dashboardItem, areaItem, ...commonItems];
+  const normalizedRole = (userRole || "").toLowerCase();
+  const isRoot = normalizedRole === ROOT_ROLE;
+
+  const allItems = isRoot
+    ? [dashboardItem, ...rootOnlyItems, areaItem, ...commonItems]
+    : [dashboardItem, areaItem, ...commonItems];
 
   return allItems;
 };
@@ -76,7 +78,7 @@ export function AppSidebar() {
   const [showLogoutDialog, setShowLogoutDialog] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
-  const menuItems = getMenuItems(user?.role || "admin");
+  const menuItems = getMenuItems(user?.role);
 
   // Get current active tab based on pathname
   const getCurrentTab = () => {

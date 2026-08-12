@@ -483,9 +483,10 @@ export default function AreaSearchBlock() {
                       📍 GPS: {selectedItem.coords[1].toFixed(6)}, {selectedItem.coords[0].toFixed(6)}
                     </p>
                   )}
-                  <p className="text-xs sm:text-sm text-slate-200 leading-relaxed pt-1.5 whitespace-pre-line bg-slate-900/60 p-3 rounded-xl border border-slate-800/60">
-                    {selectedItem.description || "Không có mô tả chi tiết."}
-                  </p>
+                  <div
+                    className="text-xs sm:text-sm text-slate-200 leading-relaxed pt-1.5 bg-slate-900/60 p-3 rounded-xl border border-slate-800/60"
+                    dangerouslySetInnerHTML={{ __html: selectedItem.description || "Không có mô tả chi tiết." }}
+                  />
 
                   {selectedItem.domain && (
                     <div className="pt-2">

@@ -82,41 +82,71 @@ export const updateArea = async (
     }
   }
 
-  const { data, error } = await supabase
-    .from("areas")
-    .update(dbAreaFields)
-    .eq("area_id", area_id)
-    .select()
-    .single();
+  let data: Area;
+  if (Object.keys(dbAreaFields).length > 0) {
+    const { data: updatedData, error } = await supabase
+      .from("areas")
+      .update(dbAreaFields)
+      .eq("area_id", area_id)
+      .select()
+      .single();
 
-  if (error) {
-    throw new Error("Failed to update area: " + error.message);
+    if (error) {
+      throw new Error("Failed to update area: " + error.message);
+    }
+    data = updatedData;
+  } else {
+    data = await getAreaById(area_id);
   }
 
   // Store metadata inside main hotspot's metadata column
-  // Merge with existing hotspot metadata to preserve chat document ids
-  if (metadata !== undefined && data.main_hotspot_id) {
-    // First fetch existing hotspot metadata
-    const { data: existingHotspot } = await supabase
-      .from("hotspots")
-      .select("metadata")
-      .eq("hotspot_id", data.main_hotspot_id)
-      .single();
+  // Merge with existing hotspot metadata to preserve other fields
+  if (metadata !== undefined) {
+    let targetHotspotId = data.main_hotspot_id;
 
-    const mergedMetadata = {
-      ...(existingHotspot?.metadata || {}),
-      ...metadata,
-    };
+    if (!targetHotspotId) {
+      const { data: firstHotspot } = await supabase
+        .from("hotspots")
+        .select("hotspot_id")
+        .eq("area_id", area_id)
+        .limit(1)
+        .maybeSingle();
 
-    const { error: metaError } = await supabase
-      .from("hotspots")
-      .update({ metadata: mergedMetadata })
-      .eq("hotspot_id", data.main_hotspot_id);
+      if (firstHotspot?.hotspot_id) {
+        targetHotspotId = firstHotspot.hotspot_id;
+        await supabase
+          .from("areas")
+          .update({ main_hotspot_id: targetHotspotId })
+          .eq("area_id", area_id);
+        data.main_hotspot_id = targetHotspotId;
+      }
+    }
 
-    if (!metaError) {
-      data.metadata = mergedMetadata;
+    if (targetHotspotId) {
+      const { data: existingHotspot } = await supabase
+        .from("hotspots")
+        .select("metadata")
+        .eq("hotspot_id", targetHotspotId)
+        .single();
+
+      const mergedMetadata = {
+        ...(existingHotspot?.metadata || {}),
+        ...metadata,
+      };
+
+      const { error: metaError } = await supabase
+        .from("hotspots")
+        .update({ metadata: mergedMetadata })
+        .eq("hotspot_id", targetHotspotId);
+
+      if (!metaError) {
+        data.metadata = mergedMetadata;
+      } else {
+        console.warn("Failed to update main hotspot metadata:", metaError.message);
+        throw new Error("Không thể cập nhật metadata cho địa điểm: " + metaError.message);
+      }
     } else {
-      console.warn("Failed to update main hotspot metadata:", metaError.message);
+      throw new Error("Khu vực chưa có địa điểm nào để lưu dữ liệu. Vui lòng tạo ít nhất 1 địa điểm trước.");
     }
   }
 
