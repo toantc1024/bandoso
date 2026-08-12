@@ -52,18 +52,19 @@ const getMenuItems = (userRole: "root" | "admin") => {
       url: "/quan-ly/nguoi-dung",
       icon: User,
     },
-    {
-      title: "Khu vực",
-      value: "khu-vuc",
-      url: "/quan-ly/khu-vuc",
-      icon: MapIcon,
-    },
   ];
+
+  const areaItem = {
+    title: "Khu vực",
+    value: "khu-vuc",
+    url: "/quan-ly/khu-vuc",
+    icon: MapIcon,
+  };
 
   const allItems =
     userRole === ROOT_ROLE
-      ? [dashboardItem, ...rootOnlyItems, ...commonItems]
-      : [dashboardItem, ...commonItems];
+      ? [dashboardItem, ...rootOnlyItems, areaItem, ...commonItems]
+      : [dashboardItem, areaItem, ...commonItems];
 
   return allItems;
 };
