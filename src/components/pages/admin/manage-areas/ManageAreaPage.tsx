@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useEffect, useState, useMemo } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   getAreas,
   createArea,
@@ -31,32 +31,81 @@ import type {
 import type { WithJoins } from "@/types/pagination.type";
 import { convertTableFiltersToApiFilters } from "@/utils/table.utils";
 
-// Extend Area to include id for DataTable compatibility
 type AreaWithId = WithJoins<Area> & { id: string };
 
 const ManageAreaPage = () => {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+
   const [areas, setAreas] = useState<AreaWithId[]>([]);
+  const [allAreaNames, setAllAreaNames] = useState<{ label: string; value: string }[]>([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingArea, setEditingArea] = useState<Area | null>(null);
   const [formData, setFormData] = useState({ area_name: "" });
   const [rowActionsDisplay] = useState<"buttons" | "dropdown">("buttons");
 
-  // Table state
-  const [pagination, setPagination] = useState<PaginationInfo>({
-    page: 1,
-    pageSize: 10,
+  // Restore filters from URL params
+  const [pagination, setPagination] = useState<PaginationInfo>(() => ({
+    page: Number(searchParams.get("page")) || 1,
+    pageSize: Number(searchParams.get("pageSize")) || 10,
     total: 0,
     totalPages: 0,
+  }));
+  const [filters, setFilters] = useState<TableFilters>(() => {
+    const saved: TableFilters = {};
+    const search = searchParams.get("search");
+    const searchColumn = searchParams.get("searchColumn");
+    const columnFilters = searchParams.get("columnFilters");
+    if (search) saved.search = search;
+    if (searchColumn) saved.searchColumn = searchColumn;
+    if (columnFilters) {
+      try { saved.columnFilters = JSON.parse(columnFilters); } catch {}
+    }
+    return saved;
   });
-  const [filters, setFilters] = useState<TableFilters>({});
-  const [sortConfig, setSortConfig] = useState<SortConfig | null>(null);
+  const [sortConfig, setSortConfig] = useState<SortConfig | null>(() => {
+    const sortKey = searchParams.get("sortKey");
+    const sortDir = searchParams.get("sortDir") as "asc" | "desc" | null;
+    if (sortKey && sortDir) return { key: sortKey, direction: sortDir };
+    return null;
+  });
+
+  // Persist filters to URL params
+  useEffect(() => {
+    const params = new URLSearchParams();
+    if (pagination.page > 1) params.set("page", String(pagination.page));
+    if (pagination.pageSize !== 10) params.set("pageSize", String(pagination.pageSize));
+    if (filters.search) params.set("search", filters.search);
+    if (filters.searchColumn) params.set("searchColumn", filters.searchColumn);
+    if (filters.columnFilters && Object.keys(filters.columnFilters).length > 0) {
+      params.set("columnFilters", JSON.stringify(filters.columnFilters));
+    }
+    if (sortConfig) {
+      params.set("sortKey", sortConfig.key);
+      params.set("sortDir", sortConfig.direction);
+    }
+    setSearchParams(params, { replace: true });
+  }, [filters, sortConfig, pagination.page, pagination.pageSize]);
+
+  // Fetch all area names for filter dropdown (no pagination)
+  const fetchAllAreaNames = async () => {
+    try {
+      const result = await getAreas({ pagination: { page: 1, limit: 9999 } });
+      const names = result.data.map((a) => ({ label: a.area_name, value: a.area_name }));
+      setAllAreaNames(names);
+    } catch (err) {
+      console.error("Error fetching area names:", err);
+    }
+  };
+
+  useEffect(() => {
+    fetchAllAreaNames();
+  }, []);
 
   const fetchAreas = async () => {
     try {
       setLoading(true);
-      // Create a simple column definition for search purposes
       const searchColumns: Column<Area>[] = [
         { key: "area_name", label: "Tên khu vực", filterable: true },
       ];
@@ -66,10 +115,6 @@ const ManageAreaPage = () => {
         searchColumns,
         { exactSearch: true }
       );
-
-      // Debug log to see what filters are being sent
-      console.log("Table filters:", filters);
-      console.log("API filters:", apiFilters);
 
       const result = await getAreas({
         pagination: {
@@ -128,6 +173,7 @@ const ManageAreaPage = () => {
       setEditingArea(null);
       setFormData({ area_name: "" });
       fetchAreas();
+      fetchAllAreaNames();
     } catch (error) {
       console.error("Error saving area:", error);
       toast.error("Không thể lưu thông tin khu vực");
@@ -144,6 +190,7 @@ const ManageAreaPage = () => {
       await deleteArea(area.area_id);
       toast.success("Xóa khu vực thành công");
       fetchAreas();
+      fetchAllAreaNames();
     } catch (error) {
       console.error("Error deleting area:", error);
       toast.error("Không thể xóa khu vực");
@@ -156,6 +203,7 @@ const ManageAreaPage = () => {
       await deleteMultipleAreas(area_ids);
       toast.success(`Đã xóa ${selectedAreas.length} khu vực thành công`);
       fetchAreas();
+      fetchAllAreaNames();
     } catch (error) {
       console.error("Error deleting areas:", error);
       toast.error("Không thể xóa các khu vực đã chọn");
@@ -174,23 +222,8 @@ const ManageAreaPage = () => {
       label: "Tên khu vực",
       sortable: true,
       filterable: true,
+      filterOptions: allAreaNames,
     },
-
-    // {
-    //   key: "hotspot_count",
-    //   label: "Số lượng Địa điểm",
-    //   render: (_, row) => {
-    //     // Count hotspots if they exist in joined data
-    //     const hotspots = row.hotspot_areas || [];
-    //     let hotspotCount = 0;
-    //     hotspotCount = Array.isArray(hotspots) ? hotspots.length : 0;
-    //     return (
-    //       <Badge asChild variant={"outline"}>
-    //         <span>{hotspotCount} địa điểm</span>
-    //       </Badge>
-    //     );
-    //   },
-    // },
   ];
 
   const rowActions: RowAction<AreaWithId>[] = [
@@ -242,7 +275,7 @@ const ManageAreaPage = () => {
 
   const handleFiltersChange = (newFilters: TableFilters) => {
     setFilters(newFilters);
-    setPagination((prev) => ({ ...prev, page: 1 })); // Reset to first page when filtering
+    setPagination((prev) => ({ ...prev, page: 1 }));
   };
 
   const handleSortChange = (newSortConfig: SortConfig | null) => {
@@ -252,9 +285,6 @@ const ManageAreaPage = () => {
   return (
     <div className="space-y-0">
       <div className="flex items-center justify-between">
-        {/* <div>
-          <h1 className="text-3xl font-bold tracking-tight">Quản lý Khu vực</h1>
-        </div> */}
         <div className="flex items-center gap-2">
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogContent>
