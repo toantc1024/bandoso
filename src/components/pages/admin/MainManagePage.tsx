@@ -59,15 +59,15 @@ const MainManagePage = () => {
           path: "/quan-ly/nguoi-dung",
           color: "bg-purple-500",
         },
-        {
-          title: "Quản lý Khu vực",
-          description: "Cấu hình và quản lý các khu vực",
-          icon: Settings,
-          path: "/quan-ly/khu-vuc",
-          color: "bg-orange-500",
-        },
       ]
       : []),
+    {
+      title: "Quản lý Khu vực",
+      description: isRoot ? "Cấu hình và quản lý các khu vực" : "Quản lý khu vực được phân công",
+      icon: Settings,
+      path: "/quan-ly/khu-vuc",
+      color: "bg-orange-500",
+    },
   ];
   const [areaCount, setAreaCount] = useState(0);
   const [hotspotCount, setHotspotCount] = useState(0);
