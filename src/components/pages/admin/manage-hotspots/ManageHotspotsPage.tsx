@@ -21,13 +21,14 @@ import { getAreas } from "@/services/areas.service";
 import { HotspotModal } from "../../../blocks/HotspotModalBlock";
 import { toast } from "sonner";
 import { useAuthStore } from "@/stores/auth.store";
+import { convertTableFiltersToApiFilters } from "@/utils/table.utils";
 import { ADMIN_ROLE } from "@/constants/role.constants";
 
 const ManageHotspotsPage = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [hotspots, setHotspots] = useState<Hotspot[]>([]);
-  const [allAreas, setAllAreas] = useState<{ label: string; value: string }[]>([]);
+  const [allAreas, setAllAreas] = useState<{ label: string; value: string; areaId: string }[]>([]);
   const [loading, setLoading] = useState(false);
   const [createModalOpen, setCreateModalOpen] = useState(false);
 
@@ -79,7 +80,7 @@ const ManageHotspotsPage = () => {
     (async () => {
       try {
         const result = await getAreas({ pagination: { page: 1, limit: 9999 } });
-        setAllAreas(result.data.map((a) => ({ label: a.area_name, value: a.area_id })));
+        setAllAreas(result.data.map((a) => ({ label: a.area_name, value: a.area_name, areaId: a.area_id })));
       } catch (err) {
         console.error("Error fetching areas:", err);
       }
@@ -140,17 +141,39 @@ const ManageHotspotsPage = () => {
     try {
       const { user } = useAuthStore.getState();
 
-      // Prepare base filters
-      let apiFilters: any = undefined;
+      // Build API filters manually to handle area_name → area_id resolution
+      let apiFilters: any = {};
 
-      // Add search filter if exists
+      // Search filter
       if (filters.search) {
-        apiFilters = {
-          search: {
-            columns: ["title", "description", "address"] as (keyof Hotspot)[],
-            query: filters.search,
-          },
+        apiFilters.search = {
+          columns: ["title", "description", "address"] as (keyof Hotspot)[],
+          query: filters.search,
         };
+      }
+
+      // Column filters (from funnel dropdowns)
+      const conditions: any[] = [];
+      if (filters.columnFilters) {
+        for (const [columnKey, filterValue] of Object.entries(filters.columnFilters)) {
+          if (columnKey === "area_id" && filterValue) {
+            // Resolve area_name → area_id (database column is numeric/string FK)
+            const match = allAreas.find((a) => a.value === filterValue);
+            if (match) {
+              conditions.push({
+                column: "area_id",
+                operator: "eq",
+                value: match.areaId,
+              });
+            }
+          } else if (filterValue) {
+            conditions.push({
+              column: columnKey,
+              operator: "eq",
+              value: filterValue,
+            });
+          }
+        }
       }
 
       // Check if user is admin and needs area filtering
@@ -170,15 +193,17 @@ const ManageHotspotsPage = () => {
           return;
         }
 
-        // Add area filter for admin users
+        // Add area filter for admin users (merge with existing conditions)
+        const adminCondition = {
+          column: "area_id" as const,
+          operator: "in" as const,
+          value: areaIds,
+        };
         apiFilters = {
           ...apiFilters,
           conditions: [
-            {
-              column: "area_id",
-              operator: "in",
-              value: areaIds,
-            },
+            ...(apiFilters.conditions || []),
+            adminCondition,
           ],
         };
       }
