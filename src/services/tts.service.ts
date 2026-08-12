@@ -25,9 +25,9 @@ export const generateTTSAudio = async (
   voice: string = "vi-VN-HoaiMyNeural"
 ): Promise<{ audio_url: string; text: string; voice: string }> => {
   const candidateUrls = [
-    undefined, // Use default getApi() baseURL
-    "https://bandoso-api-wild-lake-309.fly.dev/tts/generate",
+    undefined, // Use default getApi() baseURL (https://bandoso-api.fly.dev)
     "https://bandoso-api.fly.dev/tts/generate",
+    "https://bandoso-api.fly.dev/api/tts/generate",
     "http://localhost:8000/tts/generate"
   ];
 
