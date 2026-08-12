@@ -21,7 +21,6 @@ import { getAreas } from "@/services/areas.service";
 import { HotspotModal } from "../../../blocks/HotspotModalBlock";
 import { toast } from "sonner";
 import { useAuthStore } from "@/stores/auth.store";
-import { convertTableFiltersToApiFilters } from "@/utils/table.utils";
 import { ADMIN_ROLE } from "@/constants/role.constants";
 
 const ManageHotspotsPage = () => {
