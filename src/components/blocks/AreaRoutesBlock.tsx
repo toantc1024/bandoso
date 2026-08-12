@@ -175,15 +175,29 @@ export const AreaRoutesBlock: React.FC<AreaRoutesBlockProps> = ({ areaId }) => {
           },
           paint: {
             "line-color": r.color || "#2563eb",
-            "line-width": isSelected ? 8 : 5,
+            "line-width": isSelected ? 9 : 5,
             "line-opacity": isSelected ? 1 : 0.75,
           },
+        });
+
+        // Hover effect on line
+        map.on("mouseenter", layerId, () => {
+          map.getCanvas().style.cursor = "pointer";
+          map.setPaintProperty(layerId, "line-width", 10);
+          map.setPaintProperty(layerId, "line-opacity", 1.0);
+          map.setPaintProperty(layerId, "line-color", "#f59e0b");
+        });
+        map.on("mouseleave", layerId, () => {
+          map.getCanvas().style.cursor = "";
+          map.setPaintProperty(layerId, "line-width", selectedRoute?.id === r.id ? 9 : 5);
+          map.setPaintProperty(layerId, "line-opacity", selectedRoute?.id === r.id ? 1 : 0.75);
+          map.setPaintProperty(layerId, "line-color", r.color || "#2563eb");
         });
       }
 
       if (map.getLayer(layerId)) {
         map.setPaintProperty(layerId, "line-color", r.color || "#2563eb");
-        map.setPaintProperty(layerId, "line-width", isSelected ? 8 : 5);
+        map.setPaintProperty(layerId, "line-width", isSelected ? 9 : 5);
         map.setPaintProperty(layerId, "line-opacity", isSelected ? 1 : 0.75);
       }
 
@@ -311,6 +325,22 @@ export const AreaRoutesBlock: React.FC<AreaRoutesBlockProps> = ({ areaId }) => {
                       <div
                         key={r.id}
                         onClick={() => handleSelectRoute(r)}
+                        onMouseEnter={() => {
+                          const map = mapRef.current;
+                          if (map && map.getLayer(`area-route-layer-${r.id}`)) {
+                            map.setPaintProperty(`area-route-layer-${r.id}`, "line-width", 10);
+                            map.setPaintProperty(`area-route-layer-${r.id}`, "line-opacity", 1.0);
+                            map.setPaintProperty(`area-route-layer-${r.id}`, "line-color", "#f59e0b");
+                          }
+                        }}
+                        onMouseLeave={() => {
+                          const map = mapRef.current;
+                          if (map && map.getLayer(`area-route-layer-${r.id}`)) {
+                            map.setPaintProperty(`area-route-layer-${r.id}`, "line-width", isSelected ? 9 : 5);
+                            map.setPaintProperty(`area-route-layer-${r.id}`, "line-opacity", isSelected ? 1 : 0.75);
+                            map.setPaintProperty(`area-route-layer-${r.id}`, "line-color", r.color || "#2563eb");
+                          }
+                        }}
                         className={`p-3 rounded-xl border transition-all cursor-pointer flex items-center justify-between gap-3 ${
                           isSelected
                             ? "border-primary bg-primary/10 shadow-sm"
